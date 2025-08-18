@@ -1,0 +1,111 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #f0f0f0;
+}
+
+.container {
+    width: 300px;
+    height: 500px;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.header, .footer {
+    display: flex;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    color: #555;
+}
+
+.header {
+    border-bottom: 1px solid #ccc;
+}
+
+.footer {
+    border-top: 1px solid #ccc;
+}
+
+.header-item, .footer-item {
+    flex-grow: 1;
+    padding: 15px 0;
+    border-right: 1px solid #ccc;
+    /* リンクのデフォルトスタイルを上書き */
+    text-decoration: none; /* 下線を非表示にする */
+    color: #555;          /* 文字色を元のデザインに合わせる */
+    cursor: pointer;      /* マウスカーソルを指の形にする */
+}
+
+.header-item:last-child, .footer-item:last-child {
+    border-right: none;
+}
+
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f9f9f9;
+}
+
+.book-container {
+    padding: 20px;
+}
+
+/* For the placeholder image, you might want to replace this with your actual image */
+.book-image {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* This is a simple placeholder for the map. For an accurate map, you'd use an SVG or image. */
+.japan-map {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80px;
+    height: 80px;
+    background-color: lightgreen;
+    /* You would use a background image for a real map */
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path fill="lightgreen" d="M 50 10 C 20 10 20 80 50 80 C 80 80 80 10 50 10 Z" /></svg>');
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.8;
+}
+
+.book-cover {
+    position: relative;
+    width: 150px;
+    height: 200px;
+    background-color: orange;
+    border: 1px solid #8B4513;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 5px;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+}
+
+/* This is a placeholder for the map shape */
+.book-cover::after {
+    content: '';
+    position: absolute;
+    width: 60px;
+    height: 80px;
+    background-color: #90EE90;
+    transform: rotate(-10deg);
+}
+
+.header-item:hover, .footer-item:hover {
+    background-color: #f0f0f0; /* マウスを乗せたときに背景色を変える */
+}
