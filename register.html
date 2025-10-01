@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サインアップ</title>
+    <link rel="stylesheet" href="src/account_style.css">
+</head>
+<body>
+    <div class="account-container">
+        <h1>サインアップ</h1>
+        <!-- ↓↓↓ この行に id="registerForm" があることが重要です ↓↓↓ -->
+        <form id="registerForm">
+            <div class="form-group">
+                <input type="email" id="email" placeholder="メールアドレス" required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="password" placeholder="パスワード" required>
+            </div>
+            <div class="form-group">
+                <input type="password" id="confirmPassword" placeholder="パスワード（確認）" required>
+            </div>
+            <button type="submit" class="btn">登録</button>
+        </form>
+        <a href="login.html" class="switch-form">すでにアカウントをお持ちですか？</a>
+    </div>
+
+    <!-- Firebase SDK 本体 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+    <!-- 1. 設定ファイルを読み込む -->
+    <script src="src/firebase-config.js"></script> 
+    <!-- 2. Firebaseを初期化する -->
+    <script>
+      firebase.initializeApp(firebaseConfig);
+    </script>
+    <!-- 3. ページごとの処理を読み込む -->
+    <script src="src/register.js"></script>
+</body>
+</html>
+
