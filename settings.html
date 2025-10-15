@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>観光スタンプラリー</title>
+    <link rel="stylesheet" href="src/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="src/setting.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="top-nav">
+            <div class="profile-zone">
+                <i class="fas fa-user"></i>
+                <div class="profile-ticker">
+                    <span class="ticker-item active">旅行好きのあなた</span>
+                    <span class="ticker-item">現在地: 埼玉県</span>
+                    <span class="ticker-item">埼玉の収集率: 5 / 12</span>
+                    <span class="ticker-item">全国の収集率: 123 / 1890</span>
+                </div>
+            </div>
+            <div class="settings-icon">
+                <i class="fas fa-cog"></i>
+            </div>
+        </header>
+
+        <main class="main-content settings-page">
+            <div class="settings-group">
+                <h3>プロフィール</h3>
+                <div class="settings-item">
+                    <div class="item-content">
+                        <i class="fas fa-user-edit fa-fw"></i>
+                        <span>プロフィールを編集</span>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+            
+
+            <div class="settings-group">
+                <h3>プライバシー</h3>
+                <div class="settings-item">
+                    <div class="item-content">
+                        <i class="fas fa-map-marker-alt fa-fw"></i>
+                        <span>位置情報を友達に共有</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" checked>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                 <div class="settings-item">
+                    <div class="item-content">
+                        <i class="fas fa-eye fa-fw"></i>
+                        <span>プロフィールを公開する</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <h3>アカウント</h3>
+                <div class="settings-item">
+                    <div class="item-content">
+                        <i class="fas fa-envelope fa-fw"></i>
+                        <span>メールアドレスを変更</span>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="settings-item">
+                    <div class="item-content">
+                        <i class="fas fa-key fa-fw"></i>
+                        <span>パスワードを変更</span>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="settings-item">
+                    <div class="item-content">
+                        <i class="fas fa-sign-out-alt fa-fw"></i>
+                        <span>ログアウト</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <h3>その他</h3>
+                 <div class="settings-item">
+                    <div class="item-content">
+                        <i class="fas fa-file-contract fa-fw"></i>
+                        <span>利用規約</span>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="settings-item">
+                    <div class="item-content">
+                        <i class="fas fa-user-shield fa-fw"></i>
+                        <span>プライバシーポリシー</span>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                 <div class="settings-item">
+                    <div class="item-content">
+                        <i class="fas fa-question-circle fa-fw"></i>
+                        <span>ヘルプ / FAQ</span>
+                    </div>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+
+             <div class="settings-group">
+                <div class="settings-item danger">
+                    <div class="item-content">
+                        <i class="fas fa-trash-alt fa-fw"></i>
+                        <span>アカウントを削除</span>
+                    </div>
+                </div>
+            </div>
+
+            <p class="app-version">バージョン 1.0.0</p>
+        </main>
+
+        <footer class="bottom-nav">
+            <a href="#" class="nav-button">
+                <i class="fas fa-user-friends"></i>
+                <span>友達</span>
+            </a>
+            <a href="#" class="nav-button">
+                <i class="fas fa-map-marker-alt"></i>
+                <span>現在地</span>
+            </a>
+            <a href="#" class="nav-button">
+                <i class="fas fa-book-bookmark"></i>
+                <span>コレクション</span>
+            </a>
+        </footer>
+    </div>
+
+    <script src="src/script.js"></script>
+</body>
+</html>
