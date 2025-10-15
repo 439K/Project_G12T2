@@ -22,7 +22,7 @@ body, html {
     max-width: 480px;
     margin: 0 auto;
     /* 背景色を削除し、背景画像を設定 */
-    background-image: url('images/background.png');
+    background-image: url('../images/background.png');
     background-size: cover; /* コンテナ全体を覆うように調整 */
     background-position: center; /* 画像を中央に配置 */
     background-repeat: no-repeat; /* 画像の繰り返しを無効化 */
@@ -149,7 +149,7 @@ body, html {
     max-width: 480px;
     margin: 0 auto;
     /* 背景色を削除し、背景画像を設定 */
-    background-image: url('images/background.png');
+    background-image: url('../images/background.png');
     background-size: cover; /* コンテナ全体を覆うように調整 */
     background-position: center; /* 画像を中央に配置 */
     background-repeat: no-repeat; /* 画像の繰り返しを無効化 */
@@ -277,7 +277,7 @@ body, html {
     height: 100%;
     max-width: 480px;
     margin: 0 auto;
-    background-image: url('images/background.png');
+    background-image: url('../images/background.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
