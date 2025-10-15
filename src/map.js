@@ -1,4 +1,5 @@
-let map = L.map('map').setView([35.6812, 139.7671], 13); // 初期位置（東京駅）
+// 初期位置（東京駅）
+let map = L.map('map').setView([35.6812, 139.7671], 13);
 
     // OpenStreetMapのタイルを表示
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
