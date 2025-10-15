@@ -6,6 +6,7 @@
     <title>観光スタンプラリー</title>
     <link rel="stylesheet" href="src/style.css">
     <link rel="stylesheet" href="src/map.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -27,9 +28,10 @@
         </header>
 
         <main class="main-content">
-            <button id="getLocation">現在地を取得</button>
-            <p id="output"></p>
-            <div id="map"></div>
+            <div class="map-container">
+                <button id="getLocation" class="map-btn">📍 現在地</button>
+                <div id="map"></div>
+            </div>
         </main>
 
         <footer class="bottom-nav">
