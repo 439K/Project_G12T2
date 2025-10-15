@@ -21,10 +21,11 @@ body, html {
     height: 100%;
     max-width: 480px;
     margin: 0 auto;
+    /* 背景色を削除し、背景画像を設定 */
     background-image: url('images/background.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    background-size: cover; /* コンテナ全体を覆うように調整 */
+    background-position: center; /* 画像を中央に配置 */
+    background-repeat: no-repeat; /* 画像の繰り返しを無効化 */
     box-shadow: 0 4px 8px rgba(0,0,0,0.2);
     border-radius: 5px;
     overflow: hidden;
@@ -64,7 +65,7 @@ body, html {
 }
 
 .book-container {
-    position: relative;
+    position: relative; /* 子要素を絶対配置するための基準 */
     text-align: center;
     animation: floatAnimation 4s ease-in-out infinite;
 }
@@ -76,19 +77,20 @@ body, html {
 }
 
 /* 本の画像のスタイル */
+/* 本の画像のスタイル */
 .book-image {
-    width: 360px; /* 画像の幅を大きくしました */
-    height: auto;
-    filter: drop-shadow(5px 15px 5px rgba(0,0,0,0.3));
+    width: 360px; /* 画像の幅を大きくしました (150px -> 220px) */
+    height: auto; /* 高さは自動で調整 */
+    filter: drop-shadow(5px 15px 5px rgba(0,0,0,0.3)); /* 浮遊感のための影 */
 }
 
 /* テキストラベルを画像の上に配置 */
 .check-in-label {
-    position: absolute;
+    position: absolute; /* 親要素(.book-container)を基準に配置 */
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
-    width: 80%;
+    transform: translate(-50%, -50%); /* 中央揃え */
+    width: 80%; /* 幅を画像の80%に設定 */
     background-color: rgba(255, 255, 255, 0.9);
     padding: 15px 10px;
     border: 1px dashed var(--light-gray);
@@ -99,7 +101,7 @@ body, html {
     color: var(--text-color);
     text-align: center;
     border-radius: 3px;
-    pointer-events: none;
+    pointer-events: none; /* ラベルがクリックイベントを妨げないようにする */
 }
 .check-in-label span:last-child { font-size: 1rem; margin-top: 3px; }
 
@@ -123,26 +125,3 @@ body, html {
     font-size: 0.7rem;
 }
 .nav-button i { font-size: 1.3rem; margin-bottom: 3px; }
-.nav-button:hover { color: var(--primary-color); }
-
-/* --- レスポンシブ対応 (タブレットサイズ以上) --- */
-@media (min-width: 768px) {
-    .app-container {
-        border-radius: 20px;
-        height: 90vh;
-        max-height: 800px;
-    }
-
-    .book-image {
-        /* 本の画像を少し小さくしてバランスを取る */
-        width: 280px;
-    }
-
-    .nav-button {
-        font-size: 1rem;
-    }
-
-    .nav-button i {
-        font-size: 1.8rem;
-    }
-}
