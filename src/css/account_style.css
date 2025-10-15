@@ -15,7 +15,7 @@ body, html {
     height: 100%;
     font-family: 'Garamond', 'serif';
     /* background-colorを削除し、背景画像関連の指定をここに移動 */
-    background-image: url('images/background.png');
+    background-image: url('../images/background.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;

@@ -1,0 +1,75 @@
+/* 全体 */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: "Hiragino Sans", "Noto Sans JP", sans-serif;
+  background-color: #f4fcff;
+  color: #333;
+}
+
+/* header */
+.head-area {
+  background: linear-gradient(135deg, #ffafbd, #ffc3a0);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.prof, .setting {
+  margin: 0;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.prof:hover, .setting:hover {
+  opacity: 0.7;
+}
+
+/* main */
+.main-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+
+.book-area {
+  max-width: 250px;
+  text-align: center;
+}
+
+.book-img {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* tab */
+.tab-area {
+  display: flex;
+  justify-content: space-around;
+  background: #fff;
+  border-top: 1px solid #ddd;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  padding: 8px 0;
+}
+
+.tab {
+  flex: 1;
+  text-align: center;
+  font-size: 0.9rem;
+  padding: 6px 0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.tab:hover {
+  background: #f0f0f0;
+}
