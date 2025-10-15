@@ -146,3 +146,15 @@ body, html {
         font-size: 1.8rem;
     }
 }
+
+/* ユーザー名をクリック可能に見せるためのスタイル */
+#username-display {
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-decoration-thickness: 1px;
+}
+
+#username-display:hover {
+    opacity: 0.8;
+}
