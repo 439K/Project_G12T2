@@ -1,0 +1,63 @@
+/* --- メインコンテンツ (設定ページ用) --- */
+.main-content.settings-page {
+    flex-grow: 1;
+    overflow-y: auto; /* スクロール可能に */
+    padding: 20px;
+    /* --- 背景を他のページと統一 --- */
+    background-image: url('https://storage.googleapis.com/gemini-prod-us-west1-assets/1f7278b209d73347_1720857322306.jpg'); /* お持ちの背景画像URLに書き換えてください */
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* 背景を固定 */
+    display: block !important;
+    justify-content: initial !important;
+    align-items: initial !important;
+}
+
+.settings-group {
+    background-color: rgba(255, 255, 255, 0.9); /* 少し透明に */
+    border-radius: 12px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.settings-group h3 {
+    font-size: 0.9em;
+    color: var(--text-secondary-color);
+    padding: 15px 20px 5px;
+    margin: 0;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+ 
+.settings-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 20px;
+    border-bottom: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.settings-item:last-child { border-bottom: none; }
+.settings-item:hover { background-color: rgba(255, 255, 255, 0.5); }
+.settings-item .item-content { display: flex; align-items: center; }
+.settings-item i.fa-fw { margin-right: 15px; color: var(--primary-color); width: 20px; text-align: center; }
+.settings-item .fa-chevron-right { color: var(--text-secondary-color); }
+.settings-item.danger .item-content span, .settings-item.danger .item-content i { color: var(--danger-color); }
+
+/* Toggle Switch */
+.switch { position: relative; display: inline-block; width: 51px; height: 31px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 23px; width: 23px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: var(--primary-color); }
+input:checked + .slider:before { transform: translateX(20px); }
+
+.app-version { text-align: center; color: #fff; font-size: 0.9em; margin-top: 10px; padding-bottom: 10px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
+
+
+
+
+

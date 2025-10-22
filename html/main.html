@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>観光スタンプラリー</title>
-    <link rel="stylesheet" href="src/style.css">
+    <!-- 変更点: パスを「../src/...」に修正 -->
+    <link rel="stylesheet" href="../src/css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -13,15 +14,13 @@
         <header class="top-nav">
             <div class="profile-zone">
                 <i class="fas fa-user"></i>
+                <span id="username-display">読み込み中...</span>
                 <div class="profile-ticker">
-                    <!-- ▼▼▼ IDを追加し、初期テキストを変更 ▼▼▼ -->
-                    <span id="username-display" class="ticker-item active">読み込み中...</span>
-                    <span class="ticker-item">現在地: 埼玉県</span>
+                    <span class="ticker-item active">現在地: 埼玉県</span>
                     <span class="ticker-item">埼玉の収集率: 5 / 12</span>
                     <span class="ticker-item">全国の収集率: 123 / 1890</span>
                 </div>
             </div>
-            <!-- ▼▼▼ IDを追加 ▼▼▼ -->
             <div id="settings-icon" class="settings-icon">
                 <i class="fas fa-cog"></i>
             </div>
@@ -29,8 +28,8 @@
 
         <main class="main-content">
             <div class="book-container">
-                <!-- リンクはそのまま残します -->
-                <a href="./47.html"><img src="src/images/book.png" alt="冒険の書" class="book-image"></a>
+                <!-- 変更点: 画像パスも修正 -->
+                <a href="./47.html"><img src="../src/images/book.png" alt="冒険の書" class="book-image"></a>
             </div>
         </main>
 
@@ -50,19 +49,18 @@
         </footer>
     </div>
 
-    <!-- ▼▼▼ スクリプト読み込み部分を全面的に書き換え ▼▼▼ -->
     <!-- Firebase SDK 本体 -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
 
+    <!-- 変更点: 以下のスクリプトパスもすべて修正 -->
     <!-- 1. Firebase設定情報を読み込む -->
-    <script src="src/firebase-config.js"></script> 
+    <script src="../src/js/firebase-config.js"></script> 
     <!-- 2. Firebaseを初期化する -->
     <script>
       firebase.initializeApp(firebaseConfig);
     </script>
-    <!-- 3. 新しいメインページの処理を読み込む (script.jsの代わり) -->
-    <script src="src/main.js"></script>
+    <!-- 3. 新しいメインページの処理を読み込む -->
+    <script src="../src/js/main.js"></script>
 </body>
 </html>
-

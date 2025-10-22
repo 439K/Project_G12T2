@@ -30,10 +30,10 @@ document.addEventListener('DOMContentLoaded', function() {
             .then((userCredential) => {
                 alert('登録が完了しました！');
                 console.log('登録成功:', userCredential.user);
-                window.location.href = 'main.html';
+                // 変更点: 同じ階層のmain.htmlへ移動
+                window.location.href = './main.html';
             })
             .catch((error) => {
-                // ▼▼▼ エラー処理を日本語化 ▼▼▼
                 console.error('Firebase登録エラー:', error);
                 let errorMessage = "登録に失敗しました。";
                 switch (error.code) {
@@ -54,4 +54,3 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     });
 });
-
