@@ -11,7 +11,18 @@
 <body>
     <div class="app-container">
         <header class="top-nav">
-            <p>collection</p>
+            <div class="profile-zone">
+                <i class="fas fa-user"></i>
+                <div class="profile-ticker">
+                    <span id="username-display" class="ticker-item active">読み込み中...</span>
+                    <span class="ticker-item">現在地: 埼玉県</span>
+                    <span class="ticker-item">埼玉の収集率: 5 / 12</span>
+                    <span class="ticker-item">全国の収集率: 123 / 1890</span>
+                </div>
+            </div>
+            <div id="settings-icon" class="settings-icon">
+                <i class="fas fa-cog"></i>
+            </div>
         </header>
 
         <main class="main-content">
@@ -339,6 +350,14 @@
         </footer>
     </div>
 
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="../src/js/firebase-config.js"></script> 
+    <script>
+      firebase.initializeApp(firebaseConfig);
+    </script>
+    
+    <script src="../src/js/header.js"></script>
     <script src="../src/js/collection.js"></script>
 </body>
 </html>
