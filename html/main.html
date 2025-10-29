@@ -14,9 +14,9 @@
         <header class="top-nav">
             <div class="profile-zone">
                 <i class="fas fa-user"></i>
-                <span id="username-display">読み込み中...</span>
                 <div class="profile-ticker">
-                    <span class="ticker-item active">現在地: 埼玉県</span>
+                    <span id="username-display" class="ticker-item active">読み込み中...</span>
+                    <span class="ticker-item">現在地: 埼玉県</span>
                     <span class="ticker-item">埼玉の収集率: 5 / 12</span>
                     <span class="ticker-item">全国の収集率: 123 / 1890</span>
                 </div>
@@ -49,18 +49,13 @@
         </footer>
     </div>
 
-    <!-- Firebase SDK 本体 -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-
-    <!-- 変更点: 以下のスクリプトパスもすべて修正 -->
-    <!-- 1. Firebase設定情報を読み込む -->
     <script src="../src/js/firebase-config.js"></script> 
-    <!-- 2. Firebaseを初期化する -->
     <script>
       firebase.initializeApp(firebaseConfig);
     </script>
-    <!-- 3. 新しいメインページの処理を読み込む -->
-    <script src="../src/js/main.js"></script>
+    
+    <script src="../src/js/header.js"></script>
 </body>
 </html>
