@@ -10,18 +10,20 @@
 </head>
 <body>
     <div class="app-container">
-        <header class="top-nav">
+                <header class="top-nav">
             <div class="profile-zone">
                 <i class="fas fa-user"></i>
                 <div class="profile-ticker">
-                    <span class="ticker-item active">旅行好きのあなた</span>
+                    <!-- ▼▼▼ IDを追加し、初期テキストを変更 ▼▼▼ -->
+                    <span id="username-display" class="ticker-item active">読み込み中...</span>
                     <span class="ticker-item">現在地: 埼玉県</span>
                     <span class="ticker-item">埼玉の収集率: 5 / 12</span>
                     <span class="ticker-item">全国の収集率: 123 / 1890</span>
                 </div>
             </div>
+            <!-- ▼▼▼ IDを追加 ▼▼▼ -->
             <div class="settings-icon">
-                <i class="fas fa-cog"></i>
+                <a href="./settings.html"><i class="fas fa-cog"></i></a>
             </div>
         </header>
 
@@ -31,7 +33,7 @@
                 <div class="settings-item">
                     <div class="item-content">
                         <i class="fas fa-user-edit fa-fw"></i>
-                        <span>プロフィールを編集</span>
+                        <a href="./profile.html"><span>プロフィールを編集</span></a>
                     </div>
                     <i class="fas fa-chevron-right"></i>
                 </div>
@@ -78,7 +80,7 @@
                     </div>
                     <i class="fas fa-chevron-right"></i>
                 </div>
-                <div class="settings-item">
+                <div id="logout-icon" class="settings-item">
                     <div class="item-content">
                         <i class="fas fa-sign-out-alt fa-fw"></i>
                         <span>ログアウト</span>
@@ -139,6 +141,20 @@
         </footer>
     </div>
 
-    <script src="src/script.js"></script>
+
+    <!-- ▼▼▼ スクリプト読み込み部分を全面的に書き換え ▼▼▼ -->
+    <!-- Firebase SDK 本体 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+    <!-- 1. Firebase設定情報を読み込む -->
+    <script src="src/firebase-config.js"></script> 
+    <!-- 2. Firebaseを初期化する -->
+    <script>
+      firebase.initializeApp(firebaseConfig);
+    </script>
+    <!-- 3. 新しいメインページの処理を読み込む (script.jsの代わり) -->
+    <script src="src/settings.js"></script>
+    <script src="src/main.js"></script>
 </body>
 </html>

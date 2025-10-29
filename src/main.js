@@ -5,7 +5,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // HTML要素を取得
     const usernameDisplay = document.getElementById('username-display');
-    const settingsIcon = document.getElementById('settings-icon');
     const tickerItems = document.querySelectorAll('.ticker-item');
 
     // ログイン状態の変化を監視する（ページを開いた瞬間に実行される）
@@ -52,19 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = 'login.html';
         }
     });
-
-    // 設定アイコンにログアウト機能を追加
-    if (settingsIcon) {
-        settingsIcon.addEventListener('click', () => {
-            if (confirm('ログアウトしますか？')) {
-                auth.signOut().then(() => {
-                    window.location.href = 'title.html';
-                }).catch((error) => {
-                    console.error('ログアウトエラー', error);
-                });
-            }
-        });
-    }
 
     // プロフィール情報のテロップアニメーション関数
     function startTickerAnimation() {
