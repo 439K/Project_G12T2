@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>フレンドページ</title>
+    
+    <link rel="stylesheet" href="../src/css/style.css">
+    <link rel="stylesheet" href="../src/css/friend.css"> </head>
+<body>
+
+    <div id="friend-list-container">
+        <h2>フレンドリスト</h2>
+        <ul id="friend-list">
+            </ul>
+    </div>
+
+    <div id="profile-container" style="display: none;">
+        
+        <button id="back-button">← リストに戻る</button>
+        
+        <div id="profile-details">
+            </div>
+
+        <h3>集めたシール</h3>
+        <div id="stamp-collection">
+            </div>
+    </div>
+
+
+    <div id="stamp-modal-overlay" style="display: none;">
+    <div id="stamp-modal-content">
+        <span id="modal-close-button">&times;</span> 
+
+        <img id="modal-stamp-image" src="" alt="スタンプ詳細">
+        <h3 id="modal-stamp-name">スタンプ名</h3>
+        <p id="modal-stamp-description">ここにスタンプの説明文が入ります。</p>
+    </div>
+</div>
+
+<script src="../src/js/friend.js"></script>
+
+</body>
+</html>
