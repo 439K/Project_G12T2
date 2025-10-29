@@ -49,20 +49,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // 設定アイコンにログアウト機能を追加
-    if (settingsIcon) {
-        settingsIcon.addEventListener('click', () => {
-            if (confirm('ログアウトしますか？')) {
-                auth.signOut().then(() => {
-                    // パスをフォルダ構成に合わせて修正
-                    window.location.href = '../html/title.html';
-                }).catch((error) => {
-                    console.error('ログアウトエラー', error);
-                });
-            }
-        });
-    }
-
     // プロフィール情報のテロップアニメーション関数
     function startTickerAnimation() {
         if (tickerItems.length === 0) return;

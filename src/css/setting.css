@@ -57,7 +57,18 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 .app-version { text-align: center; color: #fff; font-size: 0.9em; margin-top: 10px; padding-bottom: 10px; text-shadow: 1px 1px 2px rgba(0,0,0,0.5); }
 
+a {
+  /* アンダーバーを消す */
+  text-decoration: none;
+  
+  /* 文字色を親要素から継承する (周りの文字と同じ色にする) */
+  color: inherit; 
+}
 
+a:visited {
+  /* 訪問済み (紫になるの) を防ぐ */
+  color: inherit; 
+}
 
 
 
