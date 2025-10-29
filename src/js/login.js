@@ -23,7 +23,8 @@ document.addEventListener('DOMContentLoaded', function() {
             .then((userCredential) => {
                 alert('ログインしました！');
                 console.log('ログイン成功:', userCredential.user);
-                window.location.href = 'main.html';
+                // 変更点: 同じ階層のmain.htmlへ移動
+                window.location.href = './main.html';
             })
             .catch((error) => {
                 console.error('Firebaseログインエラー:', error);
@@ -41,7 +42,6 @@ document.addEventListener('DOMContentLoaded', function() {
                     case 'auth/too-many-requests':
                         errorMessage = "試行回数が上限を超えました。しばらく時間をおいてから再度お試しください。";
                         break;
-                    // ▼▼▼ internal-errorに対応するケースを追加しました ▼▼▼
                     case 'auth/internal-error':
                         errorMessage = "認証サーバーで内部エラーが発生しました。プロジェクトの設定を確認するか、時間をおいて再度お試しください。";
                         break;
@@ -54,4 +54,3 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     });
 });
-

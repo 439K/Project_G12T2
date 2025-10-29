@@ -3,36 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ログイン</title>
-    <link rel="stylesheet" href="src/account_style.css">
+    <title>サインアップ</title>
+    <link rel="stylesheet" href="../src/css/account_style.css">
 </head>
 <body>
     <div class="account-container">
-        <h1>ログイン</h1>
-        <form id="loginForm">
+        <h1>サインアップ</h1>
+        <!-- ↓↓↓ この行に id="registerForm" があることが重要です ↓↓↓ -->
+        <form id="registerForm">
             <div class="form-group">
-                <!-- 変更: type="email", id="email" に修正 -->
                 <input type="email" id="email" placeholder="メールアドレス" required>
             </div>
             <div class="form-group">
                 <input type="password" id="password" placeholder="パスワード" required>
             </div>
-            <button type="submit" class="btn">ログイン</button>
+            <div class="form-group">
+                <input type="password" id="confirmPassword" placeholder="パスワード（確認）" required>
+            </div>
+            <button type="submit" class="btn">登録</button>
         </form>
-        <a href="register.html" class="switch-form">アカウントをお持ちでないですか？</a>
+        <a href="login.html" class="switch-form">すでにアカウントをお持ちですか？</a>
     </div>
 
     <!-- Firebase SDK 本体 -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    
-    <!-- 1. Firebase設定情報を読み込む (.gitignoreで管理) -->
-    <script src="src/firebase-config.js"></script>
+
+    <!-- 1. 設定ファイルを読み込む -->
+    <script src="../src/js/firebase-config.js"></script> 
     <!-- 2. Firebaseを初期化する -->
     <script>
       firebase.initializeApp(firebaseConfig);
     </script>
-    <!-- 3. ログイン処理スクリプトを読み込む -->
-    <script src="src/login.js"></script>
+    <!-- 3. ページごとの処理を読み込む -->
+    <script src="../src/js/register.js"></script>
 </body>
 </html>
+

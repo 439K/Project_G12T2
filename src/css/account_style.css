@@ -1,0 +1,140 @@
+/* --- アカウント関連ページ共通スタイル --- */
+:root {
+    --primary-color: #a0522d; /* 茶色 */
+    --background-color: #f5f5dc; /* ベージュ */
+    --text-color: #333;
+    --semi-transparent-bg: rgba(255, 255, 255, 0.85); /* 半透明の白 */
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body, html {
+    font-family: 'Garamond', 'serif';
+    /* bodyに木目背景を適用 */
+    background-image: url('../images/background.png');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed; /* 背景を固定 */
+    height: 100%;
+}
+
+.account-container {
+    width: 100%;
+    /* スマホでは最低でも画面の高さいっぱいに広がる */
+    min-height: 100vh; 
+    padding: 40px 20px;
+    /* スマホでは背景は透明 (bodyの木目が見える) */
+    background-image: none;
+    box-shadow: none;
+    border-radius: 0;
+    text-align: center;
+    color: var(--text-color);
+    
+    /* 縦方向の中央配置のためにFlexを使用 */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+h1 {
+    font-size: 3.5rem;
+    margin-bottom: 40px;
+    font-weight: normal;
+    color: #f5f5dc;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+input[type="email"],
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: 18px 15px;
+    border: 1px solid #b8860b;
+    /* 修正: style.cssのヘッダー等と背景色を合わせる */
+    background-color: rgba(255, 255, 255, 0.9); 
+    border-radius: 3px;
+    font-family: inherit;
+    font-size: 1.2rem;
+    /* 修正: 背景色に合わせて文字色を濃くする */
+    color: var(--text-color); 
+}
+
+.btn {
+    display: block;
+    width: 100%;
+    padding: 18px;
+    margin-top: 10px;
+    background-color: var(--primary-color);
+    color: white;
+    text-decoration: none;
+    border: none;
+    border-radius: 3px;
+    font-family: inherit;
+    font-size: 1.3rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn:hover {
+    background-color: #8b4513; /* 濃い茶色 */
+}
+
+a.switch-form {
+    display: inline-block;
+    margin-top: 30px;
+    font-size: 1rem;
+    color: #f5f5dc;
+    text-decoration: none;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+}
+
+a.switch-form:hover {
+    text-decoration: underline;
+}
+
+/* --- ★★★ レスポンシブ対応 (PC/タブレット) ★★★ --- */
+@media (min-width: 768px) {
+    body {
+        /* PCではbodyが中央配置のコンテナになる */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem 0; /* 上下の余白 */
+        min-height: 100vh;
+    }
+
+    .account-container {
+        /* PCではカード型レイアウトに */
+        min-height: auto; /* 高さを自動に */
+        width: 100%;
+        max-width: 480px; /* フォームの最大幅 */
+        padding: 50px 40px;
+        /* PCでは半透明の背景と影、角丸を適用 */
+        background-color: var(--semi-transparent-bg);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    h1 {
+        font-size: 3rem;
+        /* PCでは背景が白っぽくなるため、文字色を濃くする */
+        color: var(--text-color);
+        text-shadow: none;
+    }
+
+    a.switch-form {
+        /* PCでは背景が白っぽくなるため、文字色を濃くする */
+        color: var(--primary-color);
+        text-shadow: none;
+    }
+}
+

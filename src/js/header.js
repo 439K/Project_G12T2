@@ -5,9 +5,11 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // HTML要素を取得
     const usernameDisplay = document.getElementById('username-display');
-    const tickerItems = document.querySelectorAll('.ticker-item');
+    const settingsIcon = document.getElementById('settings-icon');
+    // アニメーション対象を ticker の中の要素に限定
+    const tickerItems = document.querySelectorAll('.profile-ticker .ticker-item');
 
-    // ログイン状態の変化を監視する（ページを開いた瞬間に実行される）
+    // ログイン状態の変化を監視する
     auth.onAuthStateChanged((user) => {
         if (user) {
             // --- ユーザーがログインしている場合の処理 ---
@@ -17,29 +19,23 @@ document.addEventListener('DOMContentLoaded', function() {
             if (usernameDisplay) {
                 usernameDisplay.textContent = name;
                 
-                // ▼▼▼ ここからが追加部分 ▼▼▼
-                // ユーザー名をクリックして変更する機能を追加
+                // ユーザー名をクリックして変更する機能
                 usernameDisplay.addEventListener('click', () => {
                     const currentName = user.displayName || '';
                     const newName = prompt('新しいユーザー名を入力してください:', currentName);
 
-                    // 新しい名前が入力され、キャンセルボタンが押されなかった場合
-                    if (newName && newName.trim() !== '') {
+                    if (newName && newName.trim() !== '' && newName.trim() !== currentName) {
                         user.updateProfile({
                             displayName: newName.trim()
                         }).then(() => {
-                            // Firebaseプロフィールの更新に成功
                             alert('ユーザー名を変更しました。');
-                            // 画面の表示もすぐに更新
                             usernameDisplay.textContent = newName.trim();
                         }).catch((error) => {
-                            // 更新に失敗した場合
                             console.error('ユーザー名の更新エラー:', error);
                             alert('ユーザー名の変更に失敗しました。');
                         });
                     }
                 });
-                // ▲▲▲ ここまでが追加部分 ▲▲▲
             }
 
             // プロフィール情報のテロップアニメーションを開始
@@ -48,20 +44,36 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             // --- ユーザーがログインしていない場合の処理 ---
             console.log('ログインしていません。');
-            window.location.href = 'login.html';
+            // パスをフォルダ構成に合わせて修正
+            window.location.href = '../html/login.html';
         }
     });
 
     // プロフィール情報のテロップアニメーション関数
     function startTickerAnimation() {
-        let currentItemIndex = 0;
-        setInterval(() => {
-            if (tickerItems.length > 0) {
+        if (tickerItems.length === 0) return;
+
+        let currentItemIndex = 0; // 0番目(ユーザー名)が 'active' になっている
+
+        // 4秒後に「最初の切り替え」を実行
+        setTimeout(() => {
+            
+            // 最初のアイテム(ユーザー名)を非表示に
+            tickerItems[currentItemIndex].classList.remove('active');
+            
+            // 次のアイテムのインデックスを計算
+            currentItemIndex = (currentItemIndex + 1) % tickerItems.length;
+            
+            // 次のアイテムを表示
+            tickerItems[currentItemIndex].classList.add('active');
+
+            // --- 最初の切り替えの後、定期的なスライドショーを開始 ---
+            setInterval(() => {
                 tickerItems[currentItemIndex].classList.remove('active');
                 currentItemIndex = (currentItemIndex + 1) % tickerItems.length;
                 tickerItems[currentItemIndex].classList.add('active');
-            }
-        }, 4000);
+            }, 4000); // 4秒ごとに切り替え
+
+        }, 4000); // 最初の4秒間はユーザー名を表示
     }
 });
-
