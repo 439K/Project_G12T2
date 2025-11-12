@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const currentName = user.displayName || '';
                     const newName = prompt('新しいユーザー名を入力してください:', currentName);
 
-                    if (newName && newName.trim() !== '') {
+                    if (newName && newName.trim() !== '' && newName.trim() !== currentName) {
                         user.updateProfile({
                             displayName: newName.trim()
                         }).then(() => {
@@ -44,38 +44,36 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             // --- ユーザーがログインしていない場合の処理 ---
             console.log('ログインしていません。');
-            // パスをフォルダ構成に合わせて ../html/ に変更
-            window.location.href = './login.html';
+            // パスをフォルダ構成に合わせて修正
+            window.location.href = '../html/login.html';
         }
     });
-
-    // 設定アイコンにログアウト機能を追加
-    if (settingsIcon) {
-        settingsIcon.addEventListener('click', () => {
-            if (confirm('ログアウトしますか？')) {
-                auth.signOut().then(() => {
-                    // パスをフォルダ構成に合わせて ../html/ に変更
-                    window.location.href = './title.html';
-                }).catch((error) => {
-                    console.error('ログアウトエラー', error);
-                });
-            }
-        });
-    }
 
     // プロフィール情報のテロップアニメーション関数
     function startTickerAnimation() {
         if (tickerItems.length === 0) return;
 
-        let currentItemIndex = 0;
-        // 最初からアクティブな項目を表示
-        tickerItems.forEach(item => item.classList.remove('active'));
-        tickerItems[currentItemIndex].classList.add('active');
+        let currentItemIndex = 0; // 0番目(ユーザー名)が 'active' になっている
 
-        setInterval(() => {
+        // 4秒後に「最初の切り替え」を実行
+        setTimeout(() => {
+            
+            // 最初のアイテム(ユーザー名)を非表示に
             tickerItems[currentItemIndex].classList.remove('active');
+            
+            // 次のアイテムのインデックスを計算
             currentItemIndex = (currentItemIndex + 1) % tickerItems.length;
+            
+            // 次のアイテムを表示
             tickerItems[currentItemIndex].classList.add('active');
-        }, 4000);
+
+            // --- 最初の切り替えの後、定期的なスライドショーを開始 ---
+            setInterval(() => {
+                tickerItems[currentItemIndex].classList.remove('active');
+                currentItemIndex = (currentItemIndex + 1) % tickerItems.length;
+                tickerItems[currentItemIndex].classList.add('active');
+            }, 4000); // 4秒ごとに切り替え
+
+        }, 4000); // 最初の4秒間はユーザー名を表示
     }
 });

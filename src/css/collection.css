@@ -3,11 +3,14 @@
 }
 
 .pref-area {
-    background: linear-gradient(135deg, #ffffff, #2e1d2e);
+    /* 修正: グラデーションは可読性に影響する場合があるため、シンプルな背景色に変更 */
+    background: #ffffffda; 
     margin: 0 auto 20px;
     padding: 15px;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    /* 修正: PC表示で横幅いっぱいに広がるように */
+    width: 100%;
 }
 
 .pref-line {
@@ -45,46 +48,21 @@
 .ceal-area > img {
     width: 33%;
     flex: 1;
-    /* 
-    border-radius: 6px;
-    border: 1px solid #ddd;
-    */
-    /* 透明度 */
     opacity: 0.95;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 /*
-style.cssの上書き
+★ 削除 ★
+style.cssの上書きセクションを削除しました。
+.app-container や .main-content のレイアウト指定 (height, max-width, overflowなど) は
+親となる style.css の設定を継承するように変更しました。
 */
-.app-container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh; /* 画面いっぱい */
-    max-width: 480px;
-    margin: 0 auto;
-    background-image: url('../images/background.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-    border-radius: 5px;
-    overflow: hidden;
-}
-
-/* メインコンテンツをスクロール可能に */
-.main-content {
-    flex: 1; /* ヘッダーとフッターの間で伸びる */
-    overflow-y: auto; /* 縦スクロール */
-    padding: 20px;
-    background-color: #f9f7f2a3;
-    display: block; /* flexを解除 */
-}
 
 
 /* アコーディオンメニュー */
 .accordion-005 {
-    max-width: 500px;
+    max-width: 500px; /* これはページのデザインとして残します */
 }
 
 .accordion-005:not([open]) {
@@ -140,7 +118,6 @@ style.cssの上書き
 /*
 モーダルウインドウ
 */
-/* CSS例 */
 .modal {
     display: none; /* 初期は非表示 */
     position: fixed;
