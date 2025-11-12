@@ -1,15 +1,25 @@
+/* style.css の .main-content (display: flex, align-items: center) を
+  コレクションページのリスト表示用に上書きします。
+*/
 .main-content {
+    /* * 変更点: 
+     * display: block (または flex) を明示的に指定し、
+     * align-items: flex-start で「上揃え」にします。
+     */
+    display: block; /* display: flex を解除 */
+    justify-content: flex-start; /* 左右中央揃えを解除 */
+    align-items: flex-start;   /* 上下中央揃えを解除 */
+    
     background-color: #f9f7f2a3; /* 落ち着いたベージュ系 */
+    padding: 20px; /* main-content 自身のパディング */
 }
 
 .pref-area {
-    /* 修正: グラデーションは可読性に影響する場合があるため、シンプルな背景色に変更 */
     background: #ffffffda; 
     margin: 0 auto 20px;
     padding: 15px;
     border-radius: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    /* 修正: PC表示で横幅いっぱいに広がるように */
     width: 100%;
 }
 
@@ -52,17 +62,9 @@
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/*
-★ 削除 ★
-style.cssの上書きセクションを削除しました。
-.app-container や .main-content のレイアウト指定 (height, max-width, overflowなど) は
-親となる style.css の設定を継承するように変更しました。
-*/
-
-
 /* アコーディオンメニュー */
 .accordion-005 {
-    max-width: 500px; /* これはページのデザインとして残します */
+    max-width: 500px; /* アコーディオンの最大幅 */
 }
 
 .accordion-005:not([open]) {
@@ -115,9 +117,7 @@ style.cssの上書きセクションを削除しました。
     opacity: 1;
 }
 
-/*
-モーダルウインドウ
-*/
+/* モーダルウインドウ */
 .modal {
     display: none; /* 初期は非表示 */
     position: fixed;
@@ -157,4 +157,11 @@ style.cssの上書きセクションを削除しました。
     color: #322812;
     font-weight: bold;
     font-size: 1.4rem;
+}
+
+/* --- レスポンシブ対応 (PC/タブレットサイズ) --- */
+@media (min-width: 768px) {
+    .accordion-005 {
+        max-width: 100%; /* PCでは最大幅の制限(500px)を解除し、100%に広げる */
+    }
 }
