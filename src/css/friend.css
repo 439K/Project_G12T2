@@ -1,0 +1,152 @@
+/* 基本のレイアウト */
+body {
+    font-family: sans-serif;
+    padding: 20px;
+    background-color: #f5f5dc;
+}
+
+/* ======== 1. フレンドリスト ======== */
+#friend-list {
+    list-style: none;
+    padding: 0;
+}
+
+#friend-list li {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    margin-bottom: 5px;
+    background-color: #ffffff;
+    border: 1px solid #ddd;
+    cursor: pointer; /* クリックできることを示す */
+    border-radius: 8px;
+}
+
+#friend-list li:hover {
+    background-color: #f0f0f0; /* マウスを乗せたら色を変える */
+}
+
+#friend-list img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%; /* アイコンを丸くする */
+    margin-right: 15px;
+}
+
+/* ======== 2. プロフィール画面 ======== */
+#profile-details {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #fff;
+    border-radius: 8px;
+}
+
+#profile-details img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin-right: 20px;
+}
+
+/* (前のコード ... body, #friend-list などはそのまま) */
+
+/* ======== 2. プロフィール画面 (一部変更) ======== */
+#stamp-collection img {
+    width: 100%;
+    height: auto;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer; /* ★追加：クリックできることを示す */
+}
+
+#stamp-collection img:hover {
+    opacity: 0.8; /* ★追加：マウスを乗せたら少し薄くする */
+}
+
+.profile-message {
+    font-size: 14px;
+    color: #333; /* 少し濃いめの文字色 */
+    border-radius: 5px;
+    padding: 10px;
+    margin-top: 10px;
+}
+
+
+/* ======== 3. スタンプ詳細モーダル（★ここから全部追加） ======== */
+#stamp-modal-overlay {
+    /* 画面全体を覆う黒い半透明の背景 */
+    position: fixed; /* 画面に固定 */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7); /* 少し暗くする */
+
+    /* 中身を中央揃えにするための設定 */
+    display: flex; /* ★注意：JSで 'none' から 'flex' に変えます */
+    align-items: center;
+    justify-content: center;
+    z-index: 100; /* 他の要素より手前に表示 */
+}
+
+#stamp-modal-content {
+    /* 白いポップアップの箱 */
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 400px; /* PCでも大きくなりすぎないように */
+    text-align: center;
+    position: relative; /* 閉じるボタンの基準位置にする */
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+#modal-close-button {
+    /* 閉じるボタン (×) */
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #888;
+    cursor: pointer;
+}
+#modal-close-button:hover {
+    color: #000;
+}
+
+#modal-stamp-image {
+    width: 70%;
+    max-width: 200px;
+    height: auto;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 15px;
+}
+
+/* スタンプコレクションの見た目 */
+#stamp-collection {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); /* スタンプをいい感じに並べる */
+    gap: 10px;
+    margin-top: 10px;
+}
+
+#stamp-collection img {
+    width: 100%;
+    height: auto;
+    border: 2px solid #ccc;
+    border-radius: 5px;
+}
+
+/* 戻るボタン */
+#back-button {
+    padding: 10px 15px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: #eee;
+    border: none;
+    border-radius: 5px;
+}
