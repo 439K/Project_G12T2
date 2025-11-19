@@ -1,0 +1,116 @@
+    .main-content {
+
+    /* ▼▼▼ style.css の display:flex 等を上書き ▼▼▼ */
+    display: block; /* 上から下に並べる */
+    justify-content: initial;
+    align-items: initial;
+    /* ▼▼▼ 元の .profile-page-bg のスタイルを適用 ▼▼▼ */
+    padding: 0; /* 内部の要素でマージンを管理 */
+    /* フッターが重なるのを防ぐ */
+    padding-bottom: 70px;
+
+    padding-top: 30px;
+
+        }
+
+
+
+/* --- 白いカード (settings-group を流用) --- */
+        .settings-group {
+            margin: 15px 10px;
+            background-color: #fff;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            padding: 15px;
+        }
+        .settings-group h3 {
+            margin: 0 0 15px 0;
+            font-size: 16px;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+
+
+    /* --- 1. ヘッダーエリア (カバー画像 + アバター) --- */
+        .profile-header {
+            position: relative;
+            background-color: #ddd; /* 画像読み込み中の色 */
+            height: 200px;
+        }
+        .cover-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .profile-avatar-container {
+            position: absolute;
+            bottom: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+        }
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid #fff;
+            background-color: #eee;
+            object-fit: cover;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    
+
+    .profile-info-card {
+            margin-top: 70px; /* アバターの高さ分 + 余白 */
+        }
+.profile-info-card h2 { /* ユーザー名 */
+    margin: 0 0 5px 0;
+    font-size: 24px;         /* 少し大きく */
+    font-weight: 600;        /* フォントの太さを指定 */
+    text-align: center;
+    letter-spacing: 1px;     /* 文字間を少し空ける */
+    color: #222;            /* 少し濃い色に */
+}
+
+        .bio-card h3 {
+    /* settings-group の h3 スタイルを流用、または必要なら調整 */
+    margin: 0 0 10px 0; 
+    font-size: 16px;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+
+.bio-card p { /* 自己紹介文 */
+    margin: 0;
+    font-size: 14px;
+    color: #555;
+    line-height: 1.6;
+    text-align: left; /* 自己紹介文は左揃えに */
+}
+
+
+    /* --- 3. 統計（スタッツ） --- */
+        .profile-stats {
+            display: flex; /* これで横並びになる */
+            justify-content: space-around;
+            text-align: center;
+            width: 100%;
+        }
+        .stat-item {
+            flex: 1; /* 均等に幅を取る */
+        }
+        .stat-item .value {
+            font-size: 20px;
+            font-weight: 600;
+            color: #007bff;
+        }
+        .stat-item .label {
+            font-size: 12px;
+            color: #666;
+            word-wrap: break-word; /* はみ出たら折り返す */
+
+        }
+
+    
