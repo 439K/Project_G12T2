@@ -36,7 +36,7 @@ const prefecturePaths = {
     "群馬県": "../../html/prefecture/gunma/gunma.html",
     "埼玉県": "../../html/prefecture/saitama/saitama.html",
     "千葉県": "../../html/prefecture/chiba/chiba.html",
-    "東京都": "../../html/prefecture/sample/sample.html", // ★ご指定のパスを反映
+    "東京都": "../../html/prefecture/tokyo/tokyo.html", // 指定のパスを反映
     "神奈川県": "../../html/prefecture/kanagawa/kanagawa.html",
 
     // 中部地方
