@@ -161,3 +161,96 @@ body {
     text-align: center;
     z-index: 1000;        /* 最前面に出す */
 }
+
+/* friend.css の一番下に追加 */
+
+/* ======== 検索ボックスのスタイル ======== */
+.search-box {
+    display: flex;
+    gap: 10px; /* 入力欄とボタンの間隔 */
+    margin-bottom: 15px; /* リストとの間隔 */
+}
+
+#search-input {
+    flex: 1; /* 横幅いっぱいに広げる */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+#search-button {
+    padding: 10px 20px;
+    background-color: #8b4513; /* アンティーク風の茶色 */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#search-button:hover {
+    background-color: #a0522d; /* ホバー時に少し明るく */
+}
+
+/* ======== ランキング画面のスタイル ======== */
+#ranking-button {
+    padding: 10px 15px;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    margin-left: 5px;
+}
+
+#ranking-button:hover {
+    opacity: 0.8;
+}
+
+/* ランキングリストの見た目 */
+#ranking-list {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+
+#ranking-list li {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 8px;
+    background-color: #fff;
+    border-radius: 8px;
+    border-bottom: 2px solid #ddd;
+}
+
+.rank-number {
+    font-size: 24px;
+    font-weight: bold;
+    margin-right: 15px;
+    width: 40px;
+    text-align: center;
+    font-family: 'Times New Roman', serif; /* ちょっと豪華なフォントに */
+}
+
+/* 1位〜3位の特別カラー */
+.rank-1 .rank-number { color: #d4af37; text-shadow: 1px 1px 0 #000; } /* 金 */
+.rank-2 .rank-number { color: #c0c0c0; text-shadow: 1px 1px 0 #000; } /* 銀 */
+.rank-3 .rank-number { color: #cd7f32; text-shadow: 1px 1px 0 #000; } /* 銅 */
+
+.rank-count {
+    margin-left: auto; /* 右端に寄せる */
+    font-weight: bold;
+    color: #555;
+}
+
+/* ランキング画面の戻るボタン */
+#back-to-list-button {
+    padding: 10px 15px;
+    background-color: #eee;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 10px;
+}
