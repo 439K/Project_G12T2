@@ -156,17 +156,138 @@ modalOverlay.addEventListener("click", (event) => {
     }
 });
 
-// 4. 友達リストのHTMLを作る (変更なし)
-friendsData.forEach(friend => {
-    const li = document.createElement("li");
-    li.innerHTML = `
-        <img src="${friend.icon}" alt="${friend.name}のアイコン">
-        <span>${friend.name}</span>
-    `;
-    li.dataset.friendId = friend.id;
-    li.addEventListener("click", () => {
-        const id = parseInt(li.dataset.friendId);
-        showProfile(id);
+
+// --- ★検索機能のために必要な要素を取得 (追加) ---
+const searchInput = document.getElementById("search-input");
+const searchButton = document.getElementById("search-button");
+
+// ======== ★ 4. 友達リストを作る部分を「関数」にする (変更・追加) ========
+// (リストデータを受け取って、画面に表示する役割の関数です)
+function renderFriendList(listData) {
+    // 1. まずリストを空っぽにする（検索結果を新しく表示するため）
+    friendListUL.innerHTML = "";
+
+    // 2. データがない場合の表示
+    if (listData.length === 0) {
+        friendListUL.innerHTML = "<p>見つかりませんでした。</p>";
+        return;
+    }
+
+    // 3. リストを作るループ処理
+    listData.forEach(friend => {
+        const li = document.createElement("li");
+        
+        // IDも表示するように少し変更しました（検索しやすくするため）
+        li.innerHTML = `
+            <img src="${friend.icon}" alt="${friend.name}のアイコン">
+            <div>
+                <span style="font-size: 12px; color: #666;">ID: ${friend.id}</span><br>
+                <span>${friend.name}</span>
+            </div>
+        `;
+        
+        li.dataset.friendId = friend.id;
+        li.addEventListener("click", () => {
+            const id = parseInt(li.dataset.friendId);
+            showProfile(id);
+        });
+        friendListUL.appendChild(li);
     });
-    friendListUL.appendChild(li);
+}
+
+// ======== ★ 5. 検索ボタンが押された時の動き (追加) ========
+searchButton.addEventListener("click", () => {
+    const keyword = searchInput.value; // 入力された文字を取得
+
+    // 何も入力されていなかったら、全員表示して終わる
+    if (keyword === "") {
+        renderFriendList(friendsData);
+        return;
+    }
+
+    // 検索キーワードでフィルタリング（絞り込み）する
+    // ID が一致するか、または 名前 にキーワードが含まれているか
+    const filteredFriends = friendsData.filter(friend => {
+        return String(friend.id) === keyword || friend.name.includes(keyword);
+    });
+
+    // 絞り込んだ結果を表示する
+    renderFriendList(filteredFriends);
 });
+
+
+// ======== ★ 6. 最初に画面を開いた時の処理 (変更) ========
+// 最初は「全員」を表示する
+renderFriendList(friendsData);
+
+// friend.js の最後の方に追加してください
+
+// --- ★ランキング機能用の要素を取得 ---
+const rankingButton = document.getElementById("ranking-button");
+const rankingContainer = document.getElementById("ranking-container");
+const rankingListUL = document.getElementById("ranking-list");
+const backToListButton = document.getElementById("back-to-list-button");
+
+// --- 関数：ランキングを表示する ---
+function showRanking() {
+    // 1. 画面の切り替え（リストを隠して、ランキングを出す）
+    listContainer.style.display = "none";
+    rankingContainer.style.display = "block";
+    profileContainer.style.display = "none"; // プロフィールも念のため隠す
+
+    // 2. データをシールの数(stamps.length)で多い順に並び替える
+    // (元の friendsData を壊さないように [...] でコピーしてから sort します)
+    const sortedFriends = [...friendsData].sort((a, b) => {
+        return b.stamps.length - a.stamps.length; // 多い順 (降順)
+    });
+
+    // 3. ランキングリストのHTMLを作る
+    rankingListUL.innerHTML = ""; // 一旦空にする
+
+    sortedFriends.forEach((friend, index) => {
+        const rank = index + 1; // 順位 (0始まりなので+1)
+        const li = document.createElement("li");
+
+        // 1位〜3位には特別なクラス(.rank-1など)をつける
+        if (rank <= 3) {
+            li.classList.add(`rank-${rank}`);
+        }
+
+        // 王冠アイコンの表示分け (FontAwesomeを使っている想定)
+        let iconHtml = "";
+        if (rank === 1) iconHtml = '<i class="fa-solid fa-crown" style="color:gold;"></i> ';
+        else if (rank === 2) iconHtml = '<i class="fa-solid fa-crown" style="color:silver;"></i> ';
+        else if (rank === 3) iconHtml = '<i class="fa-solid fa-crown" style="color:#cd7f32;"></i> ';
+
+        li.innerHTML = `
+            <div class="rank-number">${iconHtml}${rank}</div>
+            <img src="${friend.icon}" alt="アイコン" style="width:40px; height:40px; border-radius:50%; margin-right:10px;">
+            <span>${friend.name}</span>
+            <span class="rank-count">${friend.stamps.length} 枚</span>
+        `;
+        
+        // ★ランキングからでもクリックでプロフィール見れたら便利なので追加！
+        li.style.cursor = "pointer";
+        li.addEventListener("click", () => {
+             // プロフィールを表示するには一度ランキングを隠す必要がある
+             rankingContainer.style.display = "none";
+             showProfile(friend.id);
+        });
+
+        rankingListUL.appendChild(li);
+    });
+}
+
+// --- 関数：ランキングからリストに戻る ---
+function hideRanking() {
+    rankingContainer.style.display = "none";
+    listContainer.style.display = "block";
+}
+
+// --- イベント設定 ---
+rankingButton.addEventListener("click", showRanking);
+backToListButton.addEventListener("click", hideRanking);
+
+// プロフィール画面の「戻る」ボタンを押したとき、
+// ランキングから来た場合でも強制的に「リスト一覧」に戻る仕様でOKなら
+// 既存の backButton の処理はそのままで大丈夫です！

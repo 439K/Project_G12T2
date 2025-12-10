@@ -2,7 +2,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Firebase Authのインスタンスを取得
     const auth = firebase.auth();
+
+
     const db = firebase.firestore();
+
     // エラーメッセージなどを日本語に設定
     auth.languageCode = 'ja';
     // HTMLからフォームや入力欄の要素を取得
@@ -11,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('confirmPassword');
     // 登録フォームが送信されたときの処理
-    registerForm.addEventListener('submit', (e) => {
+    registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const email = emailInput.value;
         const password = passwordInput.value;
@@ -22,18 +25,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         // Firebaseの機能を使って新しいユーザーを作成
         auth.createUserWithEmailAndPassword(email, password)
+
             .then((userCredential) => {
                 // 成功したら、userCredentialからユーザーオブジェクトを正しく取得
-                const user = userCredential.user;
+
+                const user = userCredential.user; 
                 //console.log('Firebase Authにユーザー登録成功:', user);
+
                 // 2. そのユーザーのUIDを使ってFirestoreにデータを保存
                 // ここでPromiseをreturnすることで、次の.then()がこのFirestore処理の完了を待つ
                 return db.collection('users').doc(user.uid).set({
                     email: user.email,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp() // 登録日時をサーバー側で取得
-                });
-            })
-            .then((userCredential) => {
+            
                 alert('登録が完了しました！');
                 console.log('登録成功:', userCredential.user);
                 // 変更点: 同じ階層のmain.htmlへ移動
