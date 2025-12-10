@@ -11,8 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // 1. プロジェクションの設定
     // 修正: ご指定の座標 [139.43, 35.68] を使用
     var projection = d3.geoMercator()
-        .scale(48000)
-        .center([139.43, 35.68]) 
+        .scale(57000)
+        .center([139.35, 35.40]) 
         .translate([960 / 2, 500 / 2]);
 
     // 2. パスジェネレーター
