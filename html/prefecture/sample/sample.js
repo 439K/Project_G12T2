@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     var stampGroup = null;
 
     // 1. プロジェクションの設定
-    // 修正: ご指定の座標 [139.45, 35.65] を使用
+    // 修正: ご指定の座標 [139.43, 35.68] を使用
     var projection = d3.geoMercator()
         .scale(48000)
         .center([139.43, 35.68]) 
