@@ -13,7 +13,20 @@
 
     <div id="friend-list-container">
         <h2>フレンドリスト</h2>
+
+        <div class="search-box">
+            <input type="text" id="search-input" placeholder="ID または 名前で検索">
+            <button id="search-button">検索</button>
+            <button id="ranking-button" style="background-color: #d4af37;">🏆 ランキング</button>
+        </div>
         <ul id="friend-list">
+            </ul>
+    </div>
+
+    <div id="ranking-container" style="display: none;">
+        <h2>シール獲得ランキング 👑</h2>
+        <button id="back-to-list-button">← リストに戻る</button>
+        <ul id="ranking-list">
             </ul>
     </div>
 
