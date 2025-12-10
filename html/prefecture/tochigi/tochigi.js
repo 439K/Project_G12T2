@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // 修正: ご指定の座標 [139.43, 35.68] を使用
     var projection = d3.geoMercator()
         .scale(48000)
-        .center([139.43, 35.68]) 
+        .center([139.79, 36.68]) 
         .translate([960 / 2, 500 / 2]);
 
     // 2. パスジェネレーター
