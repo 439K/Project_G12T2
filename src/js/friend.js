@@ -1,293 +1,359 @@
-// ======== ★ 1. スタンプの「詳細データ」を定義 ========
-// (本来はデータベースに保存する情報です)
-const STAMP_IMAGE_PATH = "images/stamps/"; // 画像フォルダの場所
+import { auth, db, onAuthStateChanged, doc, setDoc } from './firebase-service.js'; 
+import { 
+    searchUsers, 
+    sendFriendRequest, 
+    listenForFriendRequests, 
+    handleFriendRequest, 
+    listenForFriends, 
+    unfriendUser 
+} from './firebase-friendservice.js';
+
+// ======== ★ 1. スタンプの「詳細データ」定義 ========
+const STAMP_IMAGE_PATH = "https://placehold.co/150x150?text=";
 const stampMasterData = {
-    // ここのキー (hotaruika.png) を...
-    "hotaruika.png": {
-        name: "ホタルイカ（基本）",
-        description: "富山県でゲット！夜の海で青白く光る、神秘的なイカ。"
-    },
-    "hotaruika_gold.png": {
-        name: "金のホタルイカ（レア）",
-        description: "富山県に長時間滞在してゲットした、最高グレードの証！"
-    },
-    "kani.png": {
-        name: "カニ（基本）",
-        description: "福井県でゲット！冬の味覚の王様。"
-    },
-    "kani_rare.png": {
-        name: "豪華なカニ（レア）",
-        description: "福井県で長く滞在し、カニの真髄に触れた証。"
-    },
-    "goheimochi.png": {
-        name: "五平餅",
-        description: "岐阜県や長野県でゲット！甘辛いタレが香ばしい。"
-    },
-    "udon.png": {
-        name: "うどん",
-        description: "香川県でゲット！コシのある麺がたまらない。"
-    }
+    "hotaruika.png": { name: "ホタルイカ", description: "富山県でゲット！夜の海で青白く光る、神秘的なイカ。" },
+    "hotaruika_gold.png": { name: "金のホタルイカ", description: "富山県でゲットした、最高グレードの証！" },
+    "kani.png": { name: "カニ", description: "福井県でゲット！冬の味覚の王様。" },
+    "kani_rare.png": { name: "豪華なカニ", description: "福井県でカニの真髄に触れた証。" },
+    "goheimochi.png": { name: "五平餅", description: "岐阜・長野でゲット！甘辛いタレが香ばしい。" },
+    "udon.png": { name: "うどん", description: "香川県でゲット！コシのある麺がたまらない。" }
 };
 
+const stampKeys = Object.keys(stampMasterData);
+let currentFriendsList = [];
 
-// ======== ★ 2. 友達データを変更 ========
-// (stamps の中身を、画像ファイル名だけの配列にします)
-const friendsData = [
-    {
-        id: 1,
-        name: "あさひ",
-        icon: "images/asahi-icon.png",
-        profileMessage: "旅人です。", // ★追加
-        // ...ここの stamps 配列と一致させます
-        stamps: ["hotaruika.png", "kani.png"] 
-    },
-    {
-        id: 2,
-        name: "れん",
-        icon: "images/ren-icon.png",
-        profileMessage: "五平餅、うますぎる。", // ★追加
-        stamps: ["goheimochi.png"]
-    },
-    {
-        id: 3,
-        name: "みさき",
-        icon: "images/misaki-icon.png",
-        profileMessage: "全国制覇めざしてます！次はどこ行こうかな？", // ★追加
-        stamps: ["hotaruika_gold.png", "kani_rare.png", "udon.png"]
-    }
-];
-
-// --- 必要なHTML要素を取得 ---
+// --- DOM要素 ---
 const listContainer = document.getElementById("friend-list-container");
 const profileContainer = document.getElementById("profile-container");
+const rankingContainer = document.getElementById("ranking-container");
+
 const friendListUL = document.getElementById("friend-list");
+const rankingListUL = document.getElementById("ranking-list");
+const requestListMiniUL = document.getElementById("request-list-mini");
+const requestNotificationArea = document.getElementById("request-notification-area");
+
+const searchInput = document.getElementById("search-input");
+const searchButton = document.getElementById("search-button");
+const rankingButton = document.getElementById("ranking-button");
 const backButton = document.getElementById("back-button");
+const backToListButton = document.getElementById("back-to-list-button");
+
 const profileDetailsDiv = document.getElementById("profile-details");
 const stampCollectionDiv = document.getElementById("stamp-collection");
 
-// --- ★ 3. モーダル用のHTML要素を取得 (追加) ---
 const modalOverlay = document.getElementById("stamp-modal-overlay");
 const modalCloseButton = document.getElementById("modal-close-button");
 const modalStampImage = document.getElementById("modal-stamp-image");
 const modalStampName = document.getElementById("modal-stamp-name");
 const modalStampDescription = document.getElementById("modal-stamp-description");
 
+let unsubscribeRequests = null;
+let unsubscribeFriends = null;
 
-// --- ★ 4. モーダルを開く/閉じる関数 (追加) ---
-function openModal(stampId) {
-    // 1. stampId (例: "hotaruika.png") を使って、詳細データを取得
-    const stampDetails = stampMasterData[stampId];
-    
-    if (!stampDetails) return; // もしデータがなかったら何もしない
-
-    // 2. モーダルの内容を書き換える
-    modalStampImage.src = STAMP_IMAGE_PATH + stampId; // 画像パスを設定
-    modalStampName.innerText = stampDetails.name;
-    modalStampDescription.innerText = stampDetails.description;
-
-    // 3. モーダルを表示する (display: none -> flex に変更)
-    modalOverlay.style.display = "flex";
-}
-
-function closeModal() {
-    // モーダルを隠す
-    modalOverlay.style.display = "none";
-}
-
-// --- 関数：プロフィール画面を表示する (★ 変更あり) ---
-function showProfile(friendId) {
-    const friend = friendsData.find(f => f.id === friendId);
-    if (!friend) return; 
-
-    // プロフィール情報をHTMLに書き込む (ここは変更なし)
-    profileDetailsDiv.innerHTML = `
-        <img src="${friend.icon}" alt="${friend.name}のアイコン">
-        <div>
-            <h2>${friend.name}</h2>
-            <p>集めたシールの数: ${friend.stamps.length}個</p>
-            <p class="profile-message">${friend.profileMessage}</p> </div>
-        </div>
-    `;
-
-    // スタンプコレクションをHTMLに書き込む (★ ここから変更)
-    stampCollectionDiv.innerHTML = ""; // 一旦中身を空にする
-    
-    // friend.stamps 配列 (例: ["hotaruika.png", "kani.png"]) をループ
-    friend.stamps.forEach(stampId => {
-        const img = document.createElement("img");
-        img.src = STAMP_IMAGE_PATH + stampId; // 画像パスを設定
-        img.alt = stampMasterData[stampId].name; // altテキストにスタンプ名を設定
-
-        // ★★★重要：画像にクリックイベントを追加★★★
-        img.addEventListener("click", () => {
-            // クリックされたら、そのスタンプのID (ファイル名) を openModal 関数に渡す
-            openModal(stampId);
-        });
-
-        stampCollectionDiv.appendChild(img);
-    });
-    // (★ 変更ここまで)
-
-    // 画面を切り替える (変更なし)
-    listContainer.style.display = "none";
-    profileContainer.style.display = "block";
-}
-
-// --- 関数：リスト一覧画面を表示する (変更なし) ---
-function showList() {
-    listContainer.style.display = "block";
-    profileContainer.style.display = "none";
-}
-
-// --- メインの処理 (★ 一部追加) ---
-
-// 1. 「リストに戻る」ボタンにクリックイベントを追加
-backButton.addEventListener("click", showList);
-
-// ★ 2. モーダルの「閉じるボタン」にクリックイベントを追加 (追加)
-modalCloseButton.addEventListener("click", closeModal);
-
-// ★ 3. モーダルの「背景（黒い部分）」をクリックしても閉じるようにする (追加)
-modalOverlay.addEventListener("click", (event) => {
-    // クリックされたのが、背景(overlay)自身だった場合のみ閉じる
-    // (中の白い箱をクリックした時は閉じないようにする)
-    if (event.target === modalOverlay) {
-        closeModal();
+// =========================================================
+//  Firebase 認証と初期化フロー
+// =========================================================
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        // ログイン確認完了
+        startListeners(); 
+    } else {
+        console.warn("ログインしていません");
+        if(friendListUL) friendListUL.innerHTML = '<li class="message">ログインしてください</li>';
+        if (unsubscribeRequests) unsubscribeRequests();
+        if (unsubscribeFriends) unsubscribeFriends();
     }
 });
 
+function startListeners() {
+    unsubscribeFriends = listenForFriends((friends) => {
+        currentFriendsList = friends.map(friend => {
+            const existing = currentFriendsList.find(f => f.uid === friend.uid);
+            return {
+                ...friend,
+                icon: friend.icon || "https://placehold.co/100x100?text=User",
+                profileMessage: existing?.profileMessage || "よろしくお願いします！",
+                stamps: existing?.stamps || generateRandomStamps()
+            };
+        });
 
-// --- ★検索機能のために必要な要素を取得 (追加) ---
-const searchInput = document.getElementById("search-input");
-const searchButton = document.getElementById("search-button");
+        if (listContainer.style.display !== "none") {
+            renderFriendList(currentFriendsList, "friend");
+        }
+    });
 
-// ======== ★ 4. 友達リストを作る部分を「関数」にする (変更・追加) ========
-// (リストデータを受け取って、画面に表示する役割の関数です)
-function renderFriendList(listData) {
-    // 1. まずリストを空っぽにする（検索結果を新しく表示するため）
+    unsubscribeRequests = listenForFriendRequests((requests) => {
+        renderRequestList(requests);
+    });
+}
+
+function generateRandomStamps() {
+    const count = Math.floor(Math.random() * 5); 
+    const myStamps = [];
+    for(let i=0; i<count; i++) {
+        const randomKey = stampKeys[Math.floor(Math.random() * stampKeys.length)];
+        if(!myStamps.includes(randomKey)) myStamps.push(randomKey);
+    }
+    return myStamps;
+}
+
+
+// =========================================================
+//  UI レンダリング関数
+// =========================================================
+
+function renderFriendList(listData, mode = "friend") {
+    if(!friendListUL) return;
     friendListUL.innerHTML = "";
 
-    // 2. データがない場合の表示
     if (listData.length === 0) {
-        friendListUL.innerHTML = "<p>見つかりませんでした。</p>";
+        friendListUL.innerHTML = `<li class="message">${mode === 'search' ? "ユーザーが見つかりません" : "フレンドがいません"}</li>`;
         return;
     }
 
-    // 3. リストを作るループ処理
-    listData.forEach(friend => {
+    listData.forEach(user => {
         const li = document.createElement("li");
+        const userInfoDiv = document.createElement("div");
+        userInfoDiv.className = "user-info";
         
-        // IDも表示するように少し変更しました（検索しやすくするため）
-        li.innerHTML = `
-            <img src="${friend.icon}" alt="${friend.name}のアイコン">
+        const uidDisplay = `<span class="user-uid">ID: ${user.uid}</span>`;
+        
+        userInfoDiv.innerHTML = `
+            <img src="${user.icon || 'https://placehold.co/100x100?text=User'}" class="user-icon" alt="icon">
             <div>
-                <span style="font-size: 12px; color: #666;">ID: ${friend.id}</span><br>
-                <span>${friend.name}</span>
+                ${uidDisplay}<br>
+                <strong>${user.displayName}</strong>
             </div>
         `;
         
-        li.dataset.friendId = friend.id;
-        li.addEventListener("click", () => {
-            const id = parseInt(li.dataset.friendId);
-            showProfile(id);
-        });
+        if (mode === 'friend') {
+            userInfoDiv.addEventListener("click", () => showProfile(user.uid));
+        }
+        li.appendChild(userInfoDiv);
+
+        const actionDiv = document.createElement("div");
+        actionDiv.className = "action-area";
+
+        if (mode === "friend") {
+            const removeBtn = document.createElement("button");
+            removeBtn.className = "btn-remove";
+            removeBtn.innerText = "解除";
+            removeBtn.addEventListener("click", async (e) => {
+                e.stopPropagation();
+                if(confirm(`${user.displayName}さんとのフレンドを解除しますか？`)) {
+                    await unfriendUser(user.uid);
+                }
+            });
+            actionDiv.appendChild(removeBtn);
+
+        } else if (mode === "search") {
+            const addBtn = document.createElement("button");
+            addBtn.className = "btn-add";
+            addBtn.innerText = "申請";
+            addBtn.addEventListener("click", async (e) => {
+                e.stopPropagation();
+                
+                // ★修正: 送信前の確認ダイアログを追加
+                if (!confirm(`${user.displayName} さんにフレンド申請を送りますか？`)) {
+                    return;
+                }
+
+                addBtn.disabled = true;
+                addBtn.innerText = "送信中...";
+                try {
+                    await sendFriendRequest(user);
+                    alert("リクエストを送信しました！");
+                    addBtn.innerText = "済";
+                } catch (err) {
+                    alert(err.message);
+                    addBtn.disabled = false;
+                    addBtn.innerText = "申請";
+                }
+            });
+            actionDiv.appendChild(addBtn);
+        }
+
+        li.appendChild(actionDiv);
         friendListUL.appendChild(li);
     });
 }
 
-// ======== ★ 5. 検索ボタンが押された時の動き (追加) ========
-searchButton.addEventListener("click", () => {
-    const keyword = searchInput.value; // 入力された文字を取得
-
-    // 何も入力されていなかったら、全員表示して終わる
-    if (keyword === "") {
-        renderFriendList(friendsData);
-        return;
+function renderRequestList(requests) {
+    if(!requestListMiniUL || !requestNotificationArea) return;
+    
+    requestListMiniUL.innerHTML = "";
+    if (requests.length > 0) {
+        requestNotificationArea.style.display = "block";
+        requests.forEach(req => {
+            const li = document.createElement("li");
+            li.style.background = "white";
+            li.style.padding = "8px";
+            li.style.borderRadius = "4px";
+            li.style.marginBottom = "5px";
+            li.style.display = "flex";
+            li.style.justifyContent = "space-between";
+            li.style.alignItems = "center";
+            
+            li.innerHTML = `
+                <span>${req.senderDisplayName} から申請</span>
+                <div class="action-area">
+                    <button class="btn-add btn-accept">承認</button>
+                    <button class="btn-remove btn-reject">拒否</button>
+                </div>
+            `;
+            
+            li.querySelector(".btn-accept").addEventListener("click", () => 
+                handleFriendRequest(req.id, 'accept', req.senderId, req.senderDisplayName, req.receiverId, req.receiverDisplayName)
+            );
+            li.querySelector(".btn-reject").addEventListener("click", () => 
+                handleFriendRequest(req.id, 'reject', req.senderId, req.senderDisplayName, req.receiverId, req.receiverDisplayName)
+            );
+            
+            requestListMiniUL.appendChild(li);
+        });
+    } else {
+        requestNotificationArea.style.display = "none";
     }
+}
 
-    // 検索キーワードでフィルタリング（絞り込み）する
-    // ID が一致するか、または 名前 にキーワードが含まれているか
-    const filteredFriends = friendsData.filter(friend => {
-        return String(friend.id) === keyword || friend.name.includes(keyword);
-    });
 
-    // 絞り込んだ結果を表示する
-    renderFriendList(filteredFriends);
+// =========================================================
+//  機能ロジック
+// =========================================================
+
+// --- 検索ボタンのクリック処理 ---
+document.addEventListener("DOMContentLoaded", () => {
+    const searchBtn = document.getElementById("search-button");
+    const searchInp = document.getElementById("search-input");
+
+    if(searchBtn) {
+        searchBtn.addEventListener("click", async () => {
+            
+            const keyword = searchInp.value.trim();
+            
+            if (!keyword) {
+                renderFriendList(currentFriendsList, "friend");
+                return;
+            }
+
+            friendListUL.innerHTML = '<li class="loading">検索中...</li>'; 
+            try {
+                const results = await searchUsers(keyword);
+                renderFriendList(results, "search");
+            } catch (err) {
+                console.error("検索エラー発生:", err);
+                friendListUL.innerHTML = '<li class="message">検索エラーが発生しました。コンソールを確認してください。</li>';
+            }
+        });
+    } else {
+        console.error("検索ボタンが見つかりません: id='search-button'");
+    }
 });
 
+// --- プロフィール表示 ---
+function showProfile(uid) {
+    const friend = currentFriendsList.find(f => f.uid === uid);
+    if (!friend) return;
 
-// ======== ★ 6. 最初に画面を開いた時の処理 (変更) ========
-// 最初は「全員」を表示する
-renderFriendList(friendsData);
-
-// friend.js の最後の方に追加してください
-
-// --- ★ランキング機能用の要素を取得 ---
-const rankingButton = document.getElementById("ranking-button");
-const rankingContainer = document.getElementById("ranking-container");
-const rankingListUL = document.getElementById("ranking-list");
-const backToListButton = document.getElementById("back-to-list-button");
-
-// --- 関数：ランキングを表示する ---
-function showRanking() {
-    // 1. 画面の切り替え（リストを隠して、ランキングを出す）
-    listContainer.style.display = "none";
-    rankingContainer.style.display = "block";
-    profileContainer.style.display = "none"; // プロフィールも念のため隠す
-
-    // 2. データをシールの数(stamps.length)で多い順に並び替える
-    // (元の friendsData を壊さないように [...] でコピーしてから sort します)
-    const sortedFriends = [...friendsData].sort((a, b) => {
-        return b.stamps.length - a.stamps.length; // 多い順 (降順)
-    });
-
-    // 3. ランキングリストのHTMLを作る
-    rankingListUL.innerHTML = ""; // 一旦空にする
-
-    sortedFriends.forEach((friend, index) => {
-        const rank = index + 1; // 順位 (0始まりなので+1)
-        const li = document.createElement("li");
-
-        // 1位〜3位には特別なクラス(.rank-1など)をつける
-        if (rank <= 3) {
-            li.classList.add(`rank-${rank}`);
-        }
-
-        // 王冠アイコンの表示分け (FontAwesomeを使っている想定)
-        let iconHtml = "";
-        if (rank === 1) iconHtml = '<i class="fa-solid fa-crown" style="color:gold;"></i> ';
-        else if (rank === 2) iconHtml = '<i class="fa-solid fa-crown" style="color:silver;"></i> ';
-        else if (rank === 3) iconHtml = '<i class="fa-solid fa-crown" style="color:#cd7f32;"></i> ';
-
-        li.innerHTML = `
-            <div class="rank-number">${iconHtml}${rank}</div>
-            <img src="${friend.icon}" alt="アイコン" style="width:40px; height:40px; border-radius:50%; margin-right:10px;">
-            <span>${friend.name}</span>
-            <span class="rank-count">${friend.stamps.length} 枚</span>
+    if(profileDetailsDiv) {
+        profileDetailsDiv.innerHTML = `
+            <img src="${friend.icon}" alt="icon">
+            <div>
+                <h2>${friend.displayName}</h2>
+                <p style="font-size:0.8em; color:#888;">ID: ${friend.uid}</p>
+                <p>集めたシールの数: ${friend.stamps.length}個</p>
+                <p style="color:#666;">"${friend.profileMessage}"</p>
+            </div>
         `;
-        
-        // ★ランキングからでもクリックでプロフィール見れたら便利なので追加！
-        li.style.cursor = "pointer";
-        li.addEventListener("click", () => {
-             // プロフィールを表示するには一度ランキングを隠す必要がある
-             rankingContainer.style.display = "none";
-             showProfile(friend.id);
+    }
+
+    if(stampCollectionDiv) {
+        stampCollectionDiv.innerHTML = "";
+        friend.stamps.forEach(stampId => {
+            const data = stampMasterData[stampId];
+            if(!data) return;
+
+            const img = document.createElement("img");
+            img.src = STAMP_IMAGE_PATH + data.name; 
+            img.alt = data.name;
+            img.addEventListener("click", () => openModal(stampId));
+            stampCollectionDiv.appendChild(img);
         });
+    }
 
-        rankingListUL.appendChild(li);
-    });
-}
-
-// --- 関数：ランキングからリストに戻る ---
-function hideRanking() {
+    listContainer.style.display = "none";
     rankingContainer.style.display = "none";
-    listContainer.style.display = "block";
+    profileContainer.style.display = "block";
 }
 
-// --- イベント設定 ---
-rankingButton.addEventListener("click", showRanking);
-backToListButton.addEventListener("click", hideRanking);
+// --- ランキング表示 ---
+function showRanking() {
+    listContainer.style.display = "none";
+    profileContainer.style.display = "none";
+    rankingContainer.style.display = "block";
 
-// プロフィール画面の「戻る」ボタンを押したとき、
-// ランキングから来た場合でも強制的に「リスト一覧」に戻る仕様でOKなら
-// 既存の backButton の処理はそのままで大丈夫です！
+    const sorted = [...currentFriendsList].sort((a, b) => b.stamps.length - a.stamps.length);
+
+    if(rankingListUL) {
+        rankingListUL.innerHTML = "";
+        sorted.forEach((friend, index) => {
+            const rank = index + 1;
+            const li = document.createElement("li");
+            if (rank <= 3) li.classList.add(`rank-${rank}`);
+
+            let iconHtml = "";
+            if (rank === 1) iconHtml = '<i class="fa-solid fa-crown" style="color:gold;"></i> ';
+            else if (rank === 2) iconHtml = '<i class="fa-solid fa-crown" style="color:silver;"></i> ';
+            else if (rank === 3) iconHtml = '<i class="fa-solid fa-crown" style="color:#cd7f32;"></i> ';
+
+            li.innerHTML = `
+                <div style="display:flex; align-items:center;">
+                    <div class="rank-number" style="width:30px;">${iconHtml}${rank}</div>
+                    <img src="${friend.icon}" style="width:40px; height:40px; border-radius:50%; margin:0 10px;">
+                    <div>
+                        <span>${friend.displayName}</span>
+                        <div style="font-size:0.7em; color:#999;">${friend.uid.substring(0,6)}...</div>
+                    </div>
+                </div>
+                <span class="rank-count">${friend.stamps.length} 枚</span>
+            `;
+            li.style.cursor = "pointer";
+            li.addEventListener("click", () => showProfile(friend.uid));
+            rankingListUL.appendChild(li);
+        });
+    }
+}
+
+// --- 画面遷移リセット ---
+function showList() {
+    if(listContainer) listContainer.style.display = "block";
+    if(profileContainer) profileContainer.style.display = "none";
+    if(rankingContainer) rankingContainer.style.display = "none";
+}
+
+if(backButton) backButton.addEventListener("click", showList);
+if(backToListButton) backToListButton.addEventListener("click", showList);
+if(rankingButton) rankingButton.addEventListener("click", showRanking);
+
+
+// =========================================================
+//  モーダル制御
+// =========================================================
+function openModal(stampId) {
+    const data = stampMasterData[stampId];
+    if (!data) return;
+
+    if(modalStampImage) modalStampImage.src = STAMP_IMAGE_PATH + data.name;
+    if(modalStampName) modalStampName.innerText = data.name;
+    if(modalStampDescription) modalStampDescription.innerText = data.description;
+    if(modalOverlay) modalOverlay.style.display = "flex";
+}
+
+function closeModal() {
+    if(modalOverlay) modalOverlay.style.display = "none";
+}
+
+if(modalCloseButton) modalCloseButton.addEventListener("click", closeModal);
+if(modalOverlay) modalOverlay.addEventListener("click", (e) => {
+    if (e.target === modalOverlay) closeModal();
+});

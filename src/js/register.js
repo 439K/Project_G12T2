@@ -1,5 +1,23 @@
 // ページのHTMLがすべて読み込まれてから、中のコードを実行する
 document.addEventListener('DOMContentLoaded', function() {
+    // --- ★追加: エラー診断コード ---
+    // 1. Firebase SDK自体が読み込まれているか確認
+    if (typeof firebase === 'undefined') {
+        alert('【エラー】Firebase SDKが読み込まれていません。\nインターネット接続を確認するか、register.htmlのscriptタグを確認してください。');
+        return;
+    }
+    // 2. Firebaseアプリが初期化されているか確認 (firebase-config.jsの読み込み確認)
+    if (!firebase.apps.length) {
+        alert('【エラー】Firebaseが初期化されていません。\nfirebase-config.js が正しく読み込まれていないか、中身の記述が間違っている可能性があります。\n(コンソールのエラーログも確認してください)');
+        return;
+    }
+    // 3. Firestore SDKが読み込まれているか確認
+    if (typeof firebase.firestore !== 'function') {
+        alert('【エラー】Firestore SDKが読み込まれていません。\nregister.html に firebase-firestore.js の読み込みタグがあるか確認してください。');
+        return;
+    }
+    // -----------------------------
+
     // Firebase Authのインスタンスを取得
     const auth = firebase.auth();
 
@@ -23,27 +41,23 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('パスワードが一致しません。');
             return;
         }
-        // Firebaseの機能を使って新しいユーザーを作成
-        auth.createUserWithEmailAndPassword(email, password)
 
-            .then((userCredential) => {
-                // 成功したら、userCredentialからユーザーオブジェクトを正しく取得
+        try {
+            // 1. Firebase Authでユーザー作成
+            const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+            const user = userCredential.user;
 
-                const user = userCredential.user; 
-                //console.log('Firebase Authにユーザー登録成功:', user);
+            // 2. Firestoreにユーザー情報を保存
+            await db.collection('users').doc(user.uid).set({
+                email: user.email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
 
-                // 2. そのユーザーのUIDを使ってFirestoreにデータを保存
-                // ここでPromiseをreturnすることで、次の.then()がこのFirestore処理の完了を待つ
-                return db.collection('users').doc(user.uid).set({
-                    email: user.email,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp() // 登録日時をサーバー側で取得
-            
-                alert('登録が完了しました！');
-                console.log('登録成功:', userCredential.user);
-                // 変更点: 同じ階層のmain.htmlへ移動
-                window.location.href = './main.html';
-            })
-            .catch((error) => {
+            // 3. 完了メッセージと画面遷移
+            alert('登録が完了しました！');
+            window.location.href = './main.html';
+
+        } catch (error) {
                 console.error('Firebase登録エラー:', error);
                 let errorMessage = "登録に失敗しました。";
                 switch (error.code) {
@@ -61,6 +75,6 @@ document.addEventListener('DOMContentLoaded', function() {
                         break;
                 }
                 alert(errorMessage);
-            });
+        }
     });
 });
