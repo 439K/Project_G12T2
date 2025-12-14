@@ -28,17 +28,23 @@ document.addEventListener('DOMContentLoaded', function() {
     auth.languageCode = 'ja';
     // HTMLからフォームや入力欄の要素を取得
     const registerForm = document.getElementById('registerForm');
+    const usernameInput = document.getElementById('username');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('confirmPassword');
     // 登録フォームが送信されたときの処理
     registerForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        const username = usernameInput.value;
         const email = emailInput.value;
         const password = passwordInput.value;
         const confirmPassword = confirmPasswordInput.value;
         if (password !== confirmPassword) {
             alert('パスワードが一致しません。');
+            return;
+        }
+        if (!username) {
+            alert("ユーザーネームを入力してください。");
             return;
         }
 
@@ -47,13 +53,21 @@ document.addEventListener('DOMContentLoaded', function() {
             const userCredential = await auth.createUserWithEmailAndPassword(email, password);
             const user = userCredential.user;
 
-            // 2. Firestoreにユーザー情報を保存
-            await db.collection('users').doc(user.uid).set({
-                email: user.email,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            // 2. ユーザーのプロフィール(displayName)を更新
+            await user.updateProfile({
+                displayName: username
             });
 
-            // 3. 完了メッセージと画面遷移
+            // 3. Firestoreにユーザー情報を保存
+            await db.collection('users').doc(user.uid).set({
+                uid: user.uid,
+                displayName: username,
+                email: user.email,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(), // ★ここにカンマを追加
+                stamps: [] 
+            });
+
+            // 4. 完了メッセージと画面遷移
             alert('登録が完了しました！');
             window.location.href = './main.html';
 
