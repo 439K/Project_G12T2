@@ -1,4 +1,8 @@
-document.addEventListener('DOMContentLoaded', function() {
+// この関数を各都道府県のHTMLから呼び出す
+function initializeMap(config) {
+    // configオブジェクトから設定を読み込む
+    const { prefectureId, geojsonPath, projectionConfig, municipalityPathMap } = config;
+
     
     // =======================================================
     // 1. Firebase, 定数, UI要素, 状態の定義
@@ -27,37 +31,11 @@ document.addEventListener('DOMContentLoaded', function() {
         3: "#ff8f00"  // レベル3
     };
 
-    // 市区町村名と画像フォルダ名のマッピング
-    const MUNICIPALITY_PATH_MAP = {
-        "千代田区": "chiyoda-ku",
-        "中央区": "chuo-ku",
-        "港区": "minato-ku",
-        "新宿区": "shinjuku-ku",
-        "文京区": "bunkyo-ku",
-        "台東区": "taito-ku",
-        "墨田区": "sumida-ku",
-        "江東区": "koto-ku",
-        "品川区": "shinagawa-ku",
-        "目黒区": "meguro-ku",
-        "大田区": "ota-ku",
-        "世田谷区": "setagaya-ku",
-        "渋谷区": "shibuya-ku",
-        "中野区": "nakano-ku",
-        "杉並区": "suginami-ku",
-        "豊島区": "toshima-ku",
-        "北区": "kita-ku",
-        "荒川区": "arakawa-ku",
-        "板橋区": "itabashi-ku",
-        "練馬区": "nerima-ku",
-        "足立区": "adachi-ku",
-        "葛飾区": "katsushika-ku",
-        "江戸川区": "edogawa-ku"
-    };
-
     function getStampImagePath(municipalityName, level) {
-        const pathName = MUNICIPALITY_PATH_MAP[municipalityName];
+        // 引数で渡されたmunicipalityPathMapを使用
+        const pathName = municipalityPathMap[municipalityName];
         if (!pathName) return "../stamp-img/default.png"; // マッピングにない場合はデフォルト画像
-        return `../stamp-img/tokyo/${pathName}/stamp${level}.png`;
+        return `../stamp-img/${prefectureId}/${pathName}/stamp${level}.png`;
     }
 
     // =======================================================
@@ -67,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function saveProgress() {
         if (!currentUser) return;
         try {
-            await db.collection('users').doc(currentUser.uid).collection('progress').doc('tokyo').set({ stamps: stampProgress });
+            await db.collection('users').doc(currentUser.uid).collection('progress').doc(prefectureId).set({ stamps: stampProgress });
         } catch (error) {
             console.error("データの保存に失敗:", error);
         }
@@ -77,7 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!currentUser || !tokyoGeoJSON) return;
 
         try {
-            const doc = await db.collection('users').doc(currentUser.uid).collection('progress').doc('tokyo').get();
+            const doc = await db.collection('users').doc(currentUser.uid).collection('progress').doc(prefectureId).get();
             if (doc.exists) {
                 stampProgress = doc.data().stamps || {};
                 restoreMapState();
@@ -131,9 +109,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // =======================================================
 
     // プロジェクション設定
-    const projection = d3.geoMercator()
-        .scale(52000) 
-        .center([139.43, 35.68]) 
+    const projection = d3.geoMercator() // 引数で渡されたprojectionConfigを使用
+        .scale(projectionConfig.scale) 
+        .center(projectionConfig.center) 
         .translate([960 / 2, 500 / 2]);
 
     const path = d3.geoPath().projection(projection);
@@ -147,7 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
         .style("height", "100%");
 
     // GeoJSONデータの読み込み
-    d3.json("tokyo.geojson", function(error, geojson) {
+    d3.json(geojsonPath, function(error, geojson) { // 引数で渡されたgeojsonPathを使用
         if (error) {
             console.error("地図データの読み込みエラー:", error);
             if (statusBox) statusBox.textContent = "地図データの読み込みに失敗しました。";
@@ -317,4 +295,4 @@ document.addEventListener('DOMContentLoaded', function() {
                 .attr("height", currentSize);
         }
     }
-});
+}
