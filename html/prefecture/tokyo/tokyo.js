@@ -1,6 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
     
     // =======================================================
+    // Firebase Firestoreの初期化
+    // =======================================================
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    // =======================================================
     // 1. グローバル状態、定数、UI要素の定義
     // =======================================================
     const statusBox = document.getElementById('status-box') || document.getElementById('status');
@@ -138,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function grantStamp(municipalityName, feature) {
+    async function grantStamp(municipalityName, feature) {
         const currentTime = Date.now();
         let progress = stampProgress[municipalityName] || { level: 0, lastCheckIn: 0 };
         const currentLevel = progress.level;
@@ -175,7 +181,16 @@ document.addEventListener('DOMContentLoaded', function() {
         let stampElement = d3.select("#" + stampId);
         const centroid = path.centroid(feature); 
         const currentSize = 30 + (newLevel - 1) * 10; 
-        const imagePath = getStampImagePath(newLevel);
+        
+        // デフォルトはローカルのレベル別画像
+        let imagePath = getStampImagePath(newLevel);
+        // Firebaseから画像URLを取得して上書き
+        try {
+            // Storageから直接画像URLを取得 (例: stamps/tokyo/北区_1.png)
+            const path = `stamps/tokyo/${municipalityName}_${newLevel}.png`;
+            imagePath = await storage.ref(path).getDownloadURL();
+        } catch (e) {
+        }
 
         if (stampElement.empty()) {
             stampGroup.append("image")
@@ -188,8 +203,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 .attr("opacity", 0)
                 .transition().duration(500).attr("opacity", 1);
         } else {
+            // 画像のパスはアニメーションできないため、transitionの前に即時更新する
+            stampElement.attr("xlink:href", imagePath);
             stampElement.transition().duration(300)
-                .attr("xlink:href", imagePath)
                 .attr("x", centroid[0] - currentSize / 2)
                 .attr("y", centroid[1] - currentSize / 2)
                 .attr("width", currentSize)
