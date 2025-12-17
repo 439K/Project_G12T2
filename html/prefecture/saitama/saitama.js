@@ -1,167 +1,152 @@
-// D3.jsによる地図描画スクリプト
-
-// 読み込んだGeoJSONデータを保持するためのグローバル変数
-var tokyoGeoJSON = null;
-var stampGroup = null;
-
-// =======================================================
-// 1. プロジェクション（投影法）の設定
-// =======================================================
-var projection = d3
-    .geoMercator()
-    .scale(25000) //表示する都道府県のサイズ
-    .center([139.65, 35.86]) //各都道府県の中心座標の緯度・経度
-    .translate([960 / 2, 500 / 2]);
-
-// =======================================================
-// 2. パスジェネレーターの生成
-// =======================================================
-var path = d3.geoPath().projection(projection);
-
-// =======================================================
-// 3. SVGステージの作成
-// =======================================================
-var width = 960;
-var height = 500;
-
-var svg = d3.select("body")
-    .append("svg")
-    .attr("width", width)
-    .attr("height", height);
-
-// スタンプ画像用のグループ要素を事前に作成（スタンプが地図の上に描画されるように）
-// var stampGroup = svg.append("g").attr("class", "stamp-group");
-
-// =======================================================
-// 4. GeoJSONデータの読み込みと描画
-// =======================================================
-d3.json("saitama.geojson", drawMaps);
-
-// 地図を描画する関数
-function drawMaps(error, geojson) {
-    if (error) throw error; 
-
-    tokyoGeoJSON = geojson;
-
-    svg.selectAll("path")
-        .data(geojson.features)
-        .enter()
-        .append("path")
-        .attr("class", "municipality")
-        .attr("id", d => "mun-" + d.properties.N03_004) 
-        .attr("d", path)
-        .attr("fill", "#e2ffdb") // 未獲得の色はそのまま
-        .attr("fill-opacity", 1.0)
-        .attr("stroke", "#333");
-
-// (B) 🚨 ここにグループ要素の作成を移動します 🚨
-    // 地図パス（<path>）の**後に**グループ要素（<g>）を追加することで、最前面に来る
-    stampGroup = svg.append("g").attr("class", "stamp-group");
-
-    // ★ ここで初期スタンプの状態を反映させる処理も追加できます ★
-    // 例: 獲得済みのスタンプがあれば、ここに描画ロジックを呼び出す
-    // 例えば、Firebaseからスタンプ情報を取得し、grantStamp(municipalityName)を呼ぶ
-}
-
-
-// =======================================================
-// 5. スタンプラリー機能
-// =======================================================
-
-// 【A】現在地の取得
-function getCurrentLocation() {
-    d3.select("#status").text("位置情報を取得中です...");
-
-    if (!tokyoGeoJSON) {
-        d3.select("#status").text("地図データを読み込み中です。しばらくお待ちください。");
-        return;
-    }
-
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(successCallback, errorCallback, {
-            enableHighAccuracy: true,
-            timeout: 5000,
-            maximumAge: 0
-        });
-    } else {
-        alert("お使いのブラウザは位置情報に対応していません。");
-    }
-}
-
-function successCallback(position) {
-    const lat = position.coords.latitude;
-    const lng = position.coords.longitude;
-
-    d3.select("#status").text(`現在地: 緯度 ${lat.toFixed(4)}, 経度 ${lng.toFixed(4)}`);
+document.addEventListener('DOMContentLoaded', function() {
     
-    checkCurrentMunicipality(lat, lng); 
-}
+    // UI要素の取得
+    const statusBox = document.getElementById('status-box');
+    const checkBtn = document.getElementById('check-stamp-btn');
 
-function errorCallback(error) {
-    d3.select("#status").text("位置情報の取得に失敗しました。");
-    console.error("位置情報の取得に失敗しました:", error);
-}
+    // D3.jsによる地図描画スクリプト
+    var tokyoGeoJSON = null;
+    var stampGroup = null;
 
-// 【B】座標と市区町村の判定 (Turf.jsを使用)
-function checkCurrentMunicipality(currentLat, currentLng) {
-    const point = turf.point([currentLng, currentLat]);
-    let currentMunicipalityName = null;
-    let currentMunicipalityFeature = null; // 該当フィーチャも保持
+    // 1. プロジェクションの設定
+    // 修正: ご指定の座標 [139.43, 35.68] を使用
+    var projection = d3.geoMercator()
+        .scale(42000)
+        .center([139.30, 36.01]) 
+        .translate([960 / 2, 500 / 2]);
 
-    for (const feature of tokyoGeoJSON.features) {
-        const isInside = turf.booleanPointInPolygon(point, feature.geometry);
+    // 2. パスジェネレーター
+    var path = d3.geoPath().projection(projection);
 
-        if (isInside) {
-            currentMunicipalityName = feature.properties.N03_004; 
-            currentMunicipalityFeature = feature; // フィーチャオブジェクトを保存
-            console.log(`現在地は ${currentMunicipalityName} 内です。`);
-            
-            // スタンプ獲得処理へ
-            grantStamp(currentMunicipalityName, currentMunicipalityFeature);
-            return; 
+    // 3. SVGステージの作成（レスポンシブ対応）
+    // bodyではなく #map-container に追加
+    var svg = d3.select("#map-container")
+        .append("svg")
+        // 固定サイズではなく viewBox を使用してレスポンシブにする
+        .attr("viewBox", "0 0 960 500")
+        .attr("preserveAspectRatio", "xMidYMid meet")
+        .style("width", "100%")
+        .style("height", "100%");
+
+    // 4. GeoJSONデータの読み込みと描画
+    // プロジェクト構成に合わせてパスを調整 (../sample.geojson)
+    d3.json("saitama.geojson", drawMaps);
+
+    function drawMaps(error, geojson) {
+        if (error) {
+            console.error("GeoJSON読み込みエラー:", error);
+            statusBox.textContent = "地図データの読み込みに失敗しました。";
+            return;
+        }
+
+        tokyoGeoJSON = geojson;
+
+        svg.selectAll("path")
+            .data(geojson.features)
+            .enter()
+            .append("path")
+            .attr("class", "municipality")
+            .attr("id", d => "mun-" + d.properties.N03_004)
+            .attr("d", path)
+            .attr("fill", "#e2ffdb")
+            .attr("fill-opacity", 1.0)
+            .attr("stroke", "#333")
+            .attr("stroke-width", 0.5); // 線を少し細く
+
+        // スタンプグループを最前面に追加
+        stampGroup = svg.append("g").attr("class", "stamp-group");
+    }
+
+    // 5. ボタンイベントの設定
+    if (checkBtn) {
+        checkBtn.addEventListener('click', getCurrentLocation);
+    }
+
+    // 現在地の取得
+    function getCurrentLocation() {
+        statusBox.textContent = "位置情報を取得中です...";
+
+        if (!tokyoGeoJSON) {
+            statusBox.textContent = "地図データを読み込み中です。";
+            return;
+        }
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(successCallback, errorCallback, {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0
+            });
+        } else {
+            alert("お使いのブラウザは位置情報に対応していません。");
         }
     }
-    
-    if (!currentMunicipalityName) {
-        d3.select("#status").text("現在地は GeoJSON 区域外、または特定の市区町村内にいません。");
-        console.log("現在地は埼玉の GeoJSON 区域外です。");
-    }
-}
 
-// 【C】スタンプ獲得処理と地図の更新（スタンプ画像表示）
-function grantStamp(municipalityName, feature) {
-    // 1. 地図のスタイルを更新（任意：境界線の色を変えるなど）
-    svg.select("#mun-" + municipalityName) // 該当する市区町村のpath要素を選択
-        .attr("fill", "#fff048ff") // 獲得後の色（金色）に変更
-        .attr("stroke", "#f5d56cff") // 境界線の色を変更
-        .attr("stroke-width", 2);
-
-    // 2. スタンプ画像を配置
-    // 既にスタンプが配置されていないか確認
-    if (d3.select("#stamp-" + municipalityName).empty()) {
-        // 各市区町村の中心座標を計算
-        // path.centroid() は D3.js の機能で、GeoJSONの形状の中心を返します
-        const centroid = path.centroid(feature); 
-        const stampSize = 30; // スタンプ画像のサイズ（ピクセル）
-
-        stampGroup.append("image")
-            .attr("id", "stamp-" + municipalityName) // IDを設定
-            .attr("xlink:href", "stamp.png") // スタンプ画像のパス
-            .attr("x", centroid[0] - stampSize / 2) // 中心に配置するためにオフセット
-            .attr("y", centroid[1] - stampSize / 2)
-            .attr("width", stampSize)
-            .attr("height", stampSize)
-            .attr("opacity", 0) // 最初は透明
-            .transition() // フェードインアニメーション
-            .duration(500)
-            .attr("opacity", 1); // 不透明に
-    } else {
-        // 既にスタンプが設置されている場合は何もしないか、別のフィードバックを行う
-        d3.select("#status").text(`${municipalityName} のスタンプは既に獲得済みです！`);
+    function successCallback(position) {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        // デバッグ用表示
+        // statusBox.textContent = `現在地: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        checkCurrentMunicipality(lat, lng);
     }
 
-    // 3. ユーザーへの通知
-    d3.select("#status").text(`${municipalityName} のスタンプを獲得しました！`);
-    
-    // ★ Firebaseなどのデータベースへの保存ロジックはここに追加してください ★
-}
+    function errorCallback(error) {
+        statusBox.textContent = "位置情報の取得に失敗しました。";
+        console.error("位置情報の取得に失敗しました:", error);
+    }
+
+    // 座標判定
+    function checkCurrentMunicipality(currentLat, currentLng) {
+        const point = turf.point([currentLng, currentLat]);
+        let currentMunicipalityName = null;
+        let currentMunicipalityFeature = null;
+
+        for (const feature of tokyoGeoJSON.features) {
+            const isInside = turf.booleanPointInPolygon(point, feature.geometry);
+            if (isInside) {
+                currentMunicipalityName = feature.properties.N03_004;
+                currentMunicipalityFeature = feature;
+                break;
+            }
+        }
+
+        if (currentMunicipalityName) {
+            grantStamp(currentMunicipalityName, currentMunicipalityFeature);
+        } else {
+            statusBox.textContent = "エリア外です。埼玉県に移動してください。";
+        }
+    }
+
+    // スタンプ獲得処理
+    function grantStamp(municipalityName, feature) {
+        // 地図のスタイル更新
+        svg.select("#mun-" + municipalityName)
+            .transition().duration(500)
+            .attr("fill", "#fff048")
+            .attr("stroke", "#f5d56c")
+            .attr("stroke-width", 2);
+
+        // スタンプ画像配置
+        if (d3.select("#stamp-" + municipalityName).empty()) {
+            const centroid = path.centroid(feature);
+            const stampSize = 40; // 少し大きく
+
+            // ※注意: スタンプ画像のパスも確認してください
+            stampGroup.append("image")
+                .attr("id", "stamp-" + municipalityName)
+                .attr("xlink:href", "stamp.png") 
+                .attr("x", centroid[0] - stampSize / 2)
+                .attr("y", centroid[1] - stampSize / 2)
+                .attr("width", stampSize)
+                .attr("height", stampSize)
+                .attr("opacity", 0)
+                .transition()
+                .duration(500)
+                .attr("opacity", 1);
+            
+            statusBox.textContent = `「${municipalityName}」のスタンプをゲットしました！`;
+        } else {
+            statusBox.textContent = `「${municipalityName}」は既に獲得済みです！`;
+        }
+    }
+});

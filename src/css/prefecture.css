@@ -1,0 +1,97 @@
+/* メインコンテンツエリアを地図用に調整 */
+.map-content {
+    position: relative; /* 地図以外の要素を絶対配置するための基準 */
+    padding: 0; /* 地図を端まで広げるため余白を削除 */
+    overflow: hidden; /* はみ出し防止 */
+    width: 100%;
+    height: 100%;
+    /* 背景色などは style.css の設定に従う */
+}
+
+/* 地図コンテナ */
+#map-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.2); /* 地図が見やすいように少し白く */
+}
+
+/* SVG地図の設定（レスポンシブ対応） */
+svg {
+    width: 100%;
+    height: 100%;
+    /* 修正: max-height制限を削除して、領域いっぱいに広げる */
+    /* max-height: 80vh; */ 
+    filter: drop-shadow(0 5px 15px rgba(0,0,0,0.2)); /* 地図に影をつけて浮き上がらせる */
+}
+
+/* UIオーバーレイ（ボタンなどを地図の上に重ねる） */
+.map-ui-layer {
+    position: absolute;
+    /* 修正: 画面全体を覆うようにして、中の要素を上下に配置する */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 20px; /* 端からの余白 */
+    
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    /* 修正: status-boxを上、buttonを下にするため space-between を指定 */
+    justify-content: space-between; 
+    
+    pointer-events: none; /* コンテナ自体はクリックを通す */
+    z-index: 100;
+}
+
+/* ステータスメッセージ */
+.status-box {
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    color: var(--text-color);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    text-align: center;
+    max-width: 90%;
+    pointer-events: auto; /* クリックを受け付ける */
+    margin-top: 10px; /* ヘッダーとの少しの隙間 */
+}
+
+/* アクションボタン */
+.action-btn {
+    background-color: #cfac21;
+    color: #fff;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: transform 0.2s, background-color 0.2s;
+    pointer-events: auto; /* クリックを受け付ける */
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px; /* フッターとの少しの隙間 */
+}
+
+.action-btn:hover {
+    background-color: #8b4513;
+    transform: translateY(-2px);
+}
+
+.action-btn:active {
+    transform: translateY(0);
+}
+
+/* PC表示時の調整 */
+@media (min-width: 768px) {
+    .map-content {
+        border-radius: 12px; /* PCでは角を丸く */
+    }
+}
