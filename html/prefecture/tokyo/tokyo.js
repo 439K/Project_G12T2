@@ -1,16 +1,19 @@
 document.addEventListener('DOMContentLoaded', function() {
     
     // =======================================================
-    // 1. グローバル状態、定数、UI要素の定義
+    // 1. Firebase, 定数, UI要素, 状態の定義
     // =======================================================
+    const db = firebase.firestore();
+    let currentUser = null;
+
     const statusBox = document.getElementById('status-box') || document.getElementById('status');
     const checkBtn = document.getElementById('check-stamp-btn');
     
-    var tokyoGeoJSON = null;
-    var stampGroup = null;
+    let tokyoGeoJSON = null;
+    let stampGroup = null;
 
-    // スタンプの進捗状況
-    var stampProgress = {}; 
+    // 進捗データ
+    let stampProgress = {}; 
 
     // クールダウン期間 (5秒)
     const COOLDOWN_MS = 5 * 1000; 
@@ -36,19 +39,85 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // =======================================================
-    // 2. D3.jsの初期化と描画
+    // 2. データの永続化 (Firestore)
+    // =======================================================
+
+    async function saveProgress() {
+        if (!currentUser) return;
+        try {
+            await db.collection('users').doc(currentUser.uid).collection('progress').doc('tokyo').set({ stamps: stampProgress });
+        } catch (error) {
+            console.error("データの保存に失敗:", error);
+        }
+    }
+
+    async function loadProgress() {
+        if (!currentUser || !tokyoGeoJSON) return;
+
+        try {
+            const doc = await db.collection('users').doc(currentUser.uid).collection('progress').doc('tokyo').get();
+            if (doc.exists) {
+                stampProgress = doc.data().stamps || {};
+                restoreMapState();
+            } else {
+                // Firestoreにデータがない場合は初期状態
+                resetMapAndProgress();
+            }
+        } catch (error) {
+            console.error("データの読み込みに失敗:", error);
+        }
+    }
+
+    function restoreMapState() {
+        if (!tokyoGeoJSON) return;
+
+        // 全ての市区町村を一度リセット
+        svg.selectAll(".municipality")
+            .attr("fill", LEVEL_COLORS[0])
+            .attr("stroke", "#333")
+            .attr("stroke-width", 0.5);
+        
+        // スタンプ画像を一度リセット
+        if (stampGroup) stampGroup.selectAll("image").remove();
+
+        // 保存された進捗に基づいて復元
+        Object.keys(stampProgress).forEach(municipalityName => {
+            const progress = stampProgress[municipalityName];
+            const feature = tokyoGeoJSON.features.find(f => f.properties.N03_004 === municipalityName);
+            if (feature) {
+                svg.select("#mun-" + municipalityName)
+                    .attr("fill", LEVEL_COLORS[progress.level])
+                    .attr("stroke", "#f5d56cff")
+                    .attr("stroke-width", progress.level === MAX_STAMPS ? 3 : 2);
+                
+                updateStampImage(municipalityName, feature, progress.level, false); // アニメーションなしで更新
+            }
+        });
+    }
+
+    function resetMapAndProgress() {
+        stampProgress = {};
+        if (stampGroup) stampGroup.selectAll("image").remove();
+        if (tokyoGeoJSON) {
+            svg.selectAll(".municipality").attr("fill", LEVEL_COLORS[0]).attr("stroke", "#333").attr("stroke-width", 0.5);
+        }
+        if (statusBox) statusBox.textContent = "地図上のエリアに移動してスタンプをゲットしよう！";
+    }
+
+    // =======================================================
+    // 3. D3.jsの初期化と描画
     // =======================================================
 
     // プロジェクション設定
-    var projection = d3.geoMercator()
+    const projection = d3.geoMercator()
         .scale(52000) 
         .center([139.43, 35.68]) 
         .translate([960 / 2, 500 / 2]);
 
-    var path = d3.geoPath().projection(projection);
+    const path = d3.geoPath().projection(projection);
 
     // SVGステージの作成 (レスポンシブ対応)
-    var svg = d3.select("#map-container")
+    const svg = d3.select("#map-container")
         .append("svg")
         .attr("viewBox", "0 0 960 500")
         .attr("preserveAspectRatio", "xMidYMid meet")
@@ -58,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // GeoJSONデータの読み込み
     d3.json("tokyo.geojson", function(error, geojson) {
         if (error) {
-            console.error("GeoJSON読み込みエラー:", error);
+            console.error("地図データの読み込みエラー:", error);
             if (statusBox) statusBox.textContent = "地図データの読み込みに失敗しました。";
             return;
         }
@@ -70,26 +139,44 @@ document.addEventListener('DOMContentLoaded', function() {
             .enter()
             .append("path")
             .attr("class", "municipality")
-            .attr("id", d => "mun-" + d.properties.N03_004) 
+            .attr("id", d => "mun-" + d.properties.N03_004)
             .attr("d", path)
             .attr("fill", LEVEL_COLORS[0])
-            .attr("fill-opacity", 1.0)
             .attr("stroke", "#333")
             .attr("stroke-width", 0.5);
 
         stampGroup = svg.append("g").attr("class", "stamp-group");
+
+        // 地図描画後、ログイン状態に応じてデータを読み込む
+        loadProgress();
     });
 
     // ボタンクリックイベント
     if (checkBtn) {
         checkBtn.addEventListener('click', getCurrentLocation);
     }
+    
+    // =======================================================
+    // 4. 認証とスタンプラリー機能
+    // =======================================================
 
-    // =======================================================
-    // 3. スタンプラリー機能
-    // =======================================================
+    firebase.auth().onAuthStateChanged(user => {
+        if (user) {
+            currentUser = user;
+            if (statusBox) statusBox.textContent = "ログインしました。データを読み込んでいます...";
+            loadProgress();
+        } else {
+            currentUser = null;
+            resetMapAndProgress();
+        }
+    });
 
     function getCurrentLocation() {
+        if (!currentUser) {
+            if (statusBox) statusBox.textContent = "この機能を利用するにはログインが必要です。";
+            return;
+        }
+
         if (statusBox) statusBox.textContent = "位置情報を取得中です...";
 
         if (!tokyoGeoJSON) {
@@ -161,6 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
         progress.level += 1;
         progress.lastCheckIn = currentTime;
         stampProgress[municipalityName] = progress;
+        saveProgress(); // Firestoreに保存
         const newLevel = progress.level;
 
         // 4. 地図のスタイル更新
@@ -171,31 +259,40 @@ document.addEventListener('DOMContentLoaded', function() {
             .attr("stroke-width", newLevel === MAX_STAMPS ? 3 : 2);
 
         // 5. スタンプ画像更新
+        updateStampImage(municipalityName, feature, newLevel, true); // アニメーションありで更新
+
+        if (statusBox) statusBox.textContent = `${municipalityName} のスタンプ (Lv.${newLevel}/${MAX_STAMPS}) を獲得！`;
+    }
+
+    function updateStampImage(municipalityName, feature, level, useTransition) {
         const stampId = "stamp-" + municipalityName;
         let stampElement = d3.select("#" + stampId);
         const centroid = path.centroid(feature); 
-        const currentSize = 30 + (newLevel - 1) * 10; 
-        const imagePath = getStampImagePath(newLevel);
+        const currentSize = 30 + (level - 1) * 10; 
+        const imagePath = getStampImagePath(level);
 
         if (stampElement.empty()) {
-            stampGroup.append("image")
+            stampElement = stampGroup.append("image")
                 .attr("id", stampId)
-                .attr("xlink:href", imagePath)
+                .attr("href", imagePath)
                 .attr("x", centroid[0] - currentSize / 2)
                 .attr("y", centroid[1] - currentSize / 2)
                 .attr("width", currentSize)
                 .attr("height", currentSize)
-                .attr("opacity", 0)
-                .transition().duration(500).attr("opacity", 1);
+                .attr("opacity", 0);
+            
+            if (useTransition) {
+                stampElement.transition().duration(500).attr("opacity", 1);
+            } else {
+                stampElement.attr("opacity", 1);
+            }
         } else {
-            stampElement.transition().duration(300)
-                .attr("xlink:href", imagePath)
+            const el = useTransition ? stampElement.transition().duration(300) : stampElement;
+            el.attr("href", imagePath)
                 .attr("x", centroid[0] - currentSize / 2)
                 .attr("y", centroid[1] - currentSize / 2)
                 .attr("width", currentSize)
                 .attr("height", currentSize);
         }
-
-        if (statusBox) statusBox.textContent = `${municipalityName} のスタンプ (Lv.${newLevel}/${MAX_STAMPS}) を獲得！`;
     }
 });
