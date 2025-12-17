@@ -5,23 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>プロフィール編集</title>
     <link rel="stylesheet" href="../src/css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../src/css/profile.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-            <div class="app-container">
-                <header class="top-nav">
+    <div class="app-container">
+        <header class="top-nav">
             <div class="profile-zone">
                 <i class="fas fa-user"></i>
                 <div class="profile-ticker">
-                    <!-- ▼▼▼ IDを追加し、初期テキストを変更 ▼▼▼ -->
                     <span id="username-display" class="ticker-item active">読み込み中...</span>
                     <span class="ticker-item">現在地: 埼玉県</span>
-                    <span class="ticker-item">埼玉の収集率: 5 / 12</span>
-                    <span class="ticker-item">全国の収集率: 123 / 1890</span>
                 </div>
             </div>
-            <!-- ▼▼▼ IDを追加 ▼▼▼ -->
             <div class="settings-icon">
                 <a href="./settings.html"><i class="fas fa-cog"></i></a>
             </div>
@@ -29,46 +25,57 @@
 
          <main class="main-content">
             
-            <!-- 1. ヘッダーエリア (カバー画像 + アバター) -->
             <div class="profile-header">
-                <img src="https://storage.googleapis.com/gemini-prod-us-west1-assets/1f7278b209d73347_1720857322306.jpg" alt="カバー画像" class="cover-image">
+                <img src="" alt="" class="cover-image" id="cover-image-preview">
+                
+                <button id="change-cover-button" class="btn-image-change cover-change-btn">
+                    <i class="fas fa-camera"></i> 背景を変更
+                </button>
+                <input type="file" id="cover-image-upload" accept="image/*" style="display: none;">
+
                 <div class="profile-avatar-container">
-                    <img src="https://placehold.co/100x100/e0e0e0/777?text=Avatar" alt="アバター" class="profile-avatar" id="profile-avatar-img">
+                    <img src="https://placehold.co/100x100/e0e0e0/777?text=User" alt="アバター" class="profile-avatar" id="profile-avatar-preview">
+                    
+                    <button id="change-avatar-button" class="btn-avatar-change">
+                        <i class="fas fa-camera"></i>
+                    </button>
+                    <input type="file" id="avatar-image-upload" accept="image/*" style="display: none;">
                 </div>
             </div>
 
             <div class="settings-group profile-info-card">
-            <h2 id="profile-name">ユーザー名</h2>
+                <h3>ユーザー名</h3>
+                <input type="text" id="profile-username" class="profile-input" placeholder="ニックネームを入力">
             </div>
 
             <div class="settings-group bio-card">
-            <h3>自己紹介</h3>
-            <p id="profile-bio">ここに自己紹介文が表示されます。旅のスタイルや好きな場所など、自由に書きましょう。</p>
+                <h3>自己紹介</h3>
+                <textarea id="profile-bio" class="profile-textarea" rows="4" placeholder="例：温泉巡りが趣味です。週末は関東近郊のスタンプを集めています！"></textarea>
             </div>
 
-            <!-- 3. 統計（スタッツ） (白いカード) -->
             <div class="settings-group">
-                <h3>あなたの統計</h3>
+                <h3>あなたの記録</h3>
                 <div class="profile-stats">
                     <div class="stat-item">
-                        <div class="value" id="stat-total">123</div>
-                        <div class="label">総スタンプ</div>
+                        <div class="value" id="stat-total">--</div>
+                        <div class="label">獲得数</div>
                     </div>
                     <div class="stat-item">
-                        <div class="value" id="stat-prefs">5</div>
+                        <div class="value" id="stat-prefs">--</div>
                         <div class="label">制覇した県</div>
                     </div>
                     <div class="stat-item">
-                        <div class="value" id="stat-rate">6.5%</div>
-                        <div class="label">全国収集率</div>
+                        <div class="value" id="stat-rate">--%</div>
+                        <div class="label">コンプ率</div>
                     </div>
                 </div>
             </div>
 
+            <div class="action-area" style="text-align: center; margin: 40px 0;">
+                <button id="save-profile-button" class="btn-save">変更を保存</button>
+            </div>
+
         </main>
-
-
-
 
         <footer class="bottom-nav">
             <a href="#" class="nav-button">
@@ -79,7 +86,7 @@
                 <i class="fas fa-map-marker-alt"></i>
                 <span>現在地</span>
             </a>
-            <a href="#" class="nav-button">
+            <a href="./collection.html" class="nav-button">
                 <i class="fas fa-book-bookmark"></i>
                 <span>コレクション</span>
             </a>
@@ -88,12 +95,16 @@
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
 
     <script src="../src/js/firebase-config.js"></script> 
     <script>
-      firebase.initializeApp(firebaseConfig);
+      if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+      }
     </script>
-    <script src="../src/js/profile.js"></script>
     <script src="../src/js/header.js"></script>
+    <script src="../src/js/profile.js"></script>
 </body>
 </html>
