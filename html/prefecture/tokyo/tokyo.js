@@ -1,9 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     
     // =======================================================
-    // 1. Firebase, 定数, UI要素, 状態の定義
+    // 1. グローバル状態、定数、UI要素の定義
     // =======================================================
     const db = firebase.firestore();
+    const storage = firebase.storage();
     let currentUser = null;
 
     const statusBox = document.getElementById('status-box') || document.getElementById('status');
@@ -247,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function grantStamp(municipalityName, feature) {
+    async function grantStamp(municipalityName, feature) {
         const currentTime = Date.now();
         let progress = stampProgress[municipalityName] || { level: 0, lastCheckIn: 0 };
         const currentLevel = progress.level;
@@ -290,8 +291,17 @@ document.addEventListener('DOMContentLoaded', function() {
         const stampId = "stamp-" + municipalityName;
         let stampElement = d3.select("#" + stampId);
         const centroid = path.centroid(feature); 
-        const currentSize = 30 + (level - 1) * 10; 
-        const imagePath = getStampImagePath(municipalityName, level);
+        const currentSize = 30 + (newLevel - 1) * 10; 
+        
+        // デフォルトはローカルのレベル別画像
+        let imagePath = getStampImagePath(municipalityName, level);
+        // Firebaseから画像URLを取得して上書き
+        try {
+            // Storageから直接画像URLを取得 (例: stamps/tokyo/北区_1.png)
+            const path = `stamps/tokyo/${municipalityName}_${newLevel}.png`;
+            imagePath = await storage.ref(path).getDownloadURL();
+        } catch (e) {
+        }
 
         if (stampElement.empty()) {
             stampElement = stampGroup.append("image")
@@ -309,8 +319,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 stampElement.attr("opacity", 1);
             }
         } else {
-            const el = useTransition ? stampElement.transition().duration(300) : stampElement;
-            el.attr("href", imagePath)
+            // 画像のパスはアニメーションできないため、transitionの前に即時更新する
+            stampElement.attr("xlink:href", imagePath);
+            stampElement.transition().duration(300)
                 .attr("x", centroid[0] - currentSize / 2)
                 .attr("y", centroid[1] - currentSize / 2)
                 .attr("width", currentSize)
