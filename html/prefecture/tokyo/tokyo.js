@@ -287,18 +287,18 @@ document.addEventListener('DOMContentLoaded', function() {
         if (statusBox) statusBox.textContent = `${municipalityName} のスタンプ (Lv.${newLevel}/${MAX_STAMPS}) を獲得！`;
     }
 
-    function updateStampImage(municipalityName, feature, level, useTransition) {
+    async function updateStampImage(municipalityName, feature, level, useTransition) {
         const stampId = "stamp-" + municipalityName;
         let stampElement = d3.select("#" + stampId);
         const centroid = path.centroid(feature); 
-        const currentSize = 30 + (newLevel - 1) * 10; 
+        const currentSize = 30 + (level - 1) * 10; 
         
         // デフォルトはローカルのレベル別画像
         let imagePath = getStampImagePath(municipalityName, level);
         // Firebaseから画像URLを取得して上書き
         try {
             // Storageから直接画像URLを取得 (例: stamps/tokyo/北区_1.png)
-            const path = `stamps/tokyo/${municipalityName}_${newLevel}.png`;
+            const path = `stamps/tokyo/${municipalityName}_${level}.png`;
             imagePath = await storage.ref(path).getDownloadURL();
         } catch (e) {
         }
