@@ -70,3 +70,8 @@
   cursor: pointer;
   display: inline-block;
 }
+
+/* ボタンコンテナの背景をこのページ専用に設定 */
+.action-buttons-container {
+    background-color: rgba(0, 0, 0, 0.25); /* 背景色を他のエリアと統一 */
+}
