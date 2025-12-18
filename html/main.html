@@ -29,19 +29,21 @@
 
         <main class="main-content">
             <div class="book-container">
-                <!-- 変更点: 画像パスも修正 -->
                 <a href="./47.html"><img src="../src/images/book.png" alt="冒険の書" class="book-image"></a>
             </div>
         </main>
+
+        <!-- ▼▼▼ 現在地チェックボタンを main の外に移動 ▼▼▼ -->
+        <div class="action-buttons-container">
+            <button id="check-stamp-prefecture-btn" class="action-btn">
+                <i class="fas fa-map-marker-alt"></i> 現在地でスタンプをチェック
+            </button>
+        </div>
 
         <footer class="bottom-nav">
             <a href="./friend.html" class="nav-button">
                 <i class="fas fa-user-friends"></i>
                 <span>友達</span>
-            </a>
-            <a href="./map.html" class="nav-button">
-                <i class="fas fa-map-marker-alt"></i>
-                <span>現在地</span>
             </a>
             <a href="./collection.html" class="nav-button">
                 <i class="fas fa-book-bookmark"></i>
@@ -58,5 +60,10 @@
     </script>
     
     <script src="../src/js/header.js"></script>
+
+    <!-- ▼▼▼ ボタン機能のためにスクリプトを追加 ▼▼▼ -->
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+    <script src="../src/js/prefecture-data.js"></script>
+    <script src="../src/js/stamp-check.js"></script>
 </body>
 </html>

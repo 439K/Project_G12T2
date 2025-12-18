@@ -198,4 +198,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
         if (statusBox) statusBox.textContent = `${municipalityName} のスタンプ (Lv.${newLevel}/${MAX_STAMPS}) を獲得！`;
     }
+
+    // Auto-check logic
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('autocheck') === 'true') {
+        // A small delay might be needed to ensure the map/data is ready
+        setTimeout(() => {
+            // Check if getCurrentLocation function exists before calling
+            if (typeof getCurrentLocation === 'function') {
+                getCurrentLocation();
+            }
+        }, 500);
+    }
 });
