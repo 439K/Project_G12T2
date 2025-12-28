@@ -49,6 +49,12 @@ document.addEventListener('DOMContentLoaded', () => {
             // メールアドレスを更新
             await user.updateEmail(newEmail); // verifyBeforeUpdateEmailではなくupdateEmailを使用
 
+            // Firestore上のメールアドレスも更新
+            const db = firebase.firestore();
+            await db.collection('users').doc(user.uid).update({
+                email: newEmail
+            });
+
             showMessage('メールアドレスを更新しました。', 'success');
             currentEmailSpan.textContent = newEmail;
             updateForm.reset();

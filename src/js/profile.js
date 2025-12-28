@@ -152,6 +152,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // Firestore更新
                 const firestoreData = {
+                    displayName: newUsername,
                     bio: newBio,
                     coverUrl: finalCoverUrl,
                     avatarUrl: finalAvatarUrl,
