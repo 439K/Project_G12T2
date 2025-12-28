@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (usernameInput) usernameInput.value = user.displayName || '';
             if (usernameDisplay) usernameDisplay.textContent = user.displayName || 'ゲスト';
             loadUserProfile(user.uid);
+            updateUserStats(user.uid); // ★追加: 統計情報を再計算して更新
         } else {
              window.location.href = 'login.html';
         }
@@ -70,6 +71,70 @@ document.addEventListener('DOMContentLoaded', function() {
         }).catch(err => console.error("データ取得エラー", err));
     }
 
+    // ▼ 統計情報の集計と更新（★新規追加）
+    async function updateUserStats(uid) {
+        try {
+            // 1. 進捗状況（progressサブコレクション）を全取得
+            const progressSnapshot = await db.collection('users').doc(uid).collection('progress').get();
+            
+            let totalEarned = 0;
+            let conqueredPrefs = 0;
+            
+            // ※コンプ率計算用の分母（全スタンプ数）。
+            // 本来はマスターデータから取得する必要がありますが、現状は未実装のため仮置きです。
+            // 将来的には collection.js のデータや Firestore の stamps コレクションから算出します。
+            const totalStampsAllJapan = 0; 
+
+            progressSnapshot.forEach(doc => {
+                const prefId = doc.id; // "tokyo", "saitama" など
+                const data = doc.data();
+                const cityStamps = data.stamps || {}; // { "CityName": { level: 2 }, ... }
+
+                let prefEarned = 0;
+                
+                // 各市町村の獲得レベルを加算
+                Object.values(cityStamps).forEach(city => {
+                    prefEarned += (city.level || 0);
+                });
+
+                totalEarned += prefEarned;
+
+                // --- 制覇判定（前準備） ---
+                // その県の全スタンプ数を取得するロジックが必要です。
+                // const prefTotal = getPrefectureTotalStamps(prefId); 
+                // if (prefTotal > 0 && prefEarned >= prefTotal) {
+                //     conqueredPrefs++;
+                // }
+            });
+
+            // コンプ率計算
+            let rate = 0;
+            if (totalStampsAllJapan > 0) {
+                rate = Math.floor((totalEarned / totalStampsAllJapan) * 100);
+            }
+
+            // 2. 画面表示を更新
+            const statTotalEl = document.getElementById('stat-total');
+            const statPrefsEl = document.getElementById('stat-prefs');
+            const statRateEl = document.getElementById('stat-rate');
+
+            if (statTotalEl) statTotalEl.textContent = totalEarned;
+            if (statPrefsEl) statPrefsEl.textContent = conqueredPrefs;
+            if (statRateEl) statRateEl.textContent = rate + '%';
+
+            // 3. Firestoreに統計情報を保存（他人がプロフィールを見たとき用）
+            await db.collection('users').doc(uid).set({
+                stats: {
+                    total: totalEarned,
+                    prefs: conqueredPrefs,
+                    rate: rate
+                }
+            }, { merge: true });
+
+        } catch (error) {
+            console.error("統計情報の更新に失敗:", error);
+        }
+    }
 
     // ▼ 画像アップロード処理
     async function uploadImage(file, path) {
