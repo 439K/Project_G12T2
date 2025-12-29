@@ -1,6 +1,7 @@
 /**
  * map-loader.js
  * 各都道府県のHTMLから呼び出される共通地図読み込みライブラリ
+ * モーダル表示機能統合版
  */
 function initializeMap(config) {
     // =======================================================
@@ -25,7 +26,7 @@ function initializeMap(config) {
     let stampProgress = {}; 
 
     // 定数
-    const COOLDOWN_MS = 3 * 1000; // 3秒（saitama.jsに合わせた調整）
+    const COOLDOWN_MS = 3 * 1000; 
     const MAX_STAMPS = 3; 
     const LEVEL_COLORS = {
         0: "#e2ffdb", // 未獲得
@@ -34,15 +35,14 @@ function initializeMap(config) {
         3: "#ff8f00"  // レベル3
     };
 
-    // 【saitama.jsより継承】区名(N03_005)があれば優先し、なければ市町村名(N03_004)を返す
     function getTargetName(feature) {
         return feature.properties.N03_005 || feature.properties.N03_004;
     }
 
     function getStampImagePath(name, level) {
         const pathName = municipalityPathMap[name];
-        if (!pathName) return "../stamp-img/default.png";
-        return `../stamp-img/${prefectureId}/${pathName}/stamp${level}.png`;
+        if (!pathName) return "../../../stamp-img/default.png";
+        return `../../../stamp-img/${prefectureId}/${pathName}/stamp${level}.png`;
     }
 
     // =======================================================
@@ -88,7 +88,6 @@ function initializeMap(config) {
 
         Object.keys(stampProgress).forEach(name => {
             const progress = stampProgress[name];
-            // IDまたはプロパティ名で検索
             const feature = geoJSONData.features.find(f => getTargetName(f) === name);
             if (feature) {
                 svg.select("#mun-" + name)
@@ -142,7 +141,7 @@ function initializeMap(config) {
             .enter()
             .append("path")
             .attr("class", "municipality")
-            .attr("id", d => "mun-" + getTargetName(d)) // 区名または市町村名をIDに
+            .attr("id", d => "mun-" + getTargetName(d))
             .attr("d", path)
             .attr("fill", LEVEL_COLORS[0])
             .attr("stroke", "#333")
@@ -150,10 +149,9 @@ function initializeMap(config) {
 
         stampGroup = svg.append("g").attr("class", "stamp-group");
 
-        // 初期データ読み込み
         loadProgress();
-        // saitama.jsの自動チェック機能
         handleAutoCheck();
+        setupModalEvents(); // モーダルイベントの初期化
     });
 
     if (checkBtn) {
@@ -161,7 +159,7 @@ function initializeMap(config) {
     }
     
     // =======================================================
-    // 4. スタンプラリーロジック
+    // 4. スタンプラリーロジック & 画像更新
     // =======================================================
 
     firebase.auth().onAuthStateChanged(user => {
@@ -187,8 +185,6 @@ function initializeMap(config) {
                 () => { if (statusBox) statusBox.textContent = "位置情報の取得に失敗しました。"; },
                 { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
             );
-        } else {
-            alert("お使いのブラウザは位置情報に対応していません。");
         }
     }
 
@@ -212,7 +208,7 @@ function initializeMap(config) {
         let progress = stampProgress[name] || { level: 0, lastCheckIn: 0 };
 
         if (progress.level >= MAX_STAMPS) {
-            if (statusBox) statusBox.textContent = `${name} のスタンプは獲得済みです！`;
+            if (statusBox) statusBox.textContent = `${name} のスタンプはコンプリート済みです！`;
             return;
         }
 
@@ -228,7 +224,6 @@ function initializeMap(config) {
         stampProgress[name] = progress;
         saveProgress();
 
-        // 地図更新
         svg.select("#mun-" + name)
             .transition().duration(500)
             .attr("fill", LEVEL_COLORS[progress.level])
@@ -239,18 +234,19 @@ function initializeMap(config) {
         if (statusBox) statusBox.textContent = `${name} のスタンプ (Lv.${progress.level}) を獲得！`;
     }
 
+    // ★ 修正点: 画像にクリックイベントを付与
     async function updateStampImage(name, feature, level, useTransition) {
         const stampId = "stamp-" + name;
         let stampElement = d3.select("#" + stampId);
         const centroid = path.centroid(feature); 
-        const currentSize = 30 + (level - 1) * 10; 
+        // const currentSize = 30 + (level - 1) * 10;
+        const currentSize = 60 + (level - 1) * 20; 
         
         let imagePath = null;
-        // Firebase Storage 優先チェック (元々の map-loader.js の機能を維持)
         try {
             // 1. 市区町村固有のスタンプを探す
-            const municipalityPath = `stamps/${prefectureId}/${name}_${level}.png`;
-            imagePath = await storage.ref(municipalityPath).getDownloadURL();
+            const storageRefPath = `stamps/${prefectureId}/${name}_${level}.png`;
+            imagePath = await storage.ref(storageRefPath).getDownloadURL();
         } catch (e1) {
             try {
                 // 2. なければ都道府県共通のスタンプを探す (例: stamps/tokyo/tokyo_1.png)
@@ -270,8 +266,10 @@ function initializeMap(config) {
                 .attr("y", centroid[1] - currentSize / 2)
                 .attr("width", currentSize)
                 .attr("height", currentSize)
-                .attr("opacity", 0);
-            
+                .attr("opacity", 0)
+                .style("cursor", "pointer") // 指アイコンにする
+                .on("click", () => showStampModal(name, imagePath, level)); // クリックでモーダル
+
             const target = useTransition ? stampElement.transition().duration(500) : stampElement;
             target.attr("opacity", 1);
         } else {
@@ -280,17 +278,49 @@ function initializeMap(config) {
                 .attr("x", centroid[0] - currentSize / 2)
                 .attr("y", centroid[1] - currentSize / 2)
                 .attr("width", currentSize)
-                .attr("height", currentSize);
+                .attr("height", currentSize)
+                .on("end", function() {
+                    // transition終了後にクリックイベントを確実に紐付け
+                    d3.select(this).on("click", () => showStampModal(name, imagePath, level));
+                });
         }
     }
 
-    // 自動チェック機能
+    // =======================================================
+    // 5. モーダル表示ロジック (追加)
+    // =======================================================
+
+    function showStampModal(name, imgSrc, level) {
+        const modal = document.getElementById("img-modal");
+        if (!modal) return;
+
+        document.getElementById("modal-city-name").textContent = name;
+        document.getElementById("modal-img").src = imgSrc;
+        document.getElementById("modal-desc").textContent = `${name}のスタンプ (レベル ${level}) です。現地を訪れて獲得しました！`;
+        modal.style.display = "flex";
+    }
+
+    function setupModalEvents() {
+        const modal = document.getElementById("img-modal");
+        const closeBtn = document.getElementById("modal-close");
+
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => {
+                modal.style.display = "none";
+            });
+        }
+
+        window.addEventListener("click", (event) => {
+            if (event.target === modal) {
+                modal.style.display = "none";
+            }
+        });
+    }
+
     function handleAutoCheck() {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('autocheck') === 'true') {
-            setTimeout(() => { 
-                getCurrentLocation(); 
-            }, 1000);
+            setTimeout(() => { getCurrentLocation(); }, 1000);
         }
     }
 }
