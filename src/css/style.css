@@ -207,3 +207,48 @@ body {
         font-size: 1.8rem;
     }
 }
+
+/* --- アクションボタン（共通スタイル） --- */
+
+/* アクションボタンコンテナのスタイル */
+.action-buttons-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px; /* ボタン間の隙間 */
+    padding: 20px 0;
+    /* 背景色は各ページのコンテキストに依存するため、ここでは設定しない。
+       特定のページで暗い背景が必要な場合は、そのページのCSSやHTMLで
+       <div class="action-buttons-container" style="background-color: rgba(0,0,0,0.25);">
+       のように指定するか、専用のクラスを追加します。
+    */
+}
+
+/* アクションボタン自体のスタイル */
+.action-btn {
+    background-color: #cfac21;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    transition: transform 0.2s, background-color 0.2s;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    gap: 10px;
+}
+
+/* ホバー時のスタイル */
+.action-btn:hover {
+    background-color: #8b4513;
+    transform: translateY(-2px);
+}
+
+/* クリック時のスタイル */
+.action-btn:active {
+    transform: translateY(0);
+}
