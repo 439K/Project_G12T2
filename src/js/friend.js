@@ -73,6 +73,8 @@ function startListeners() {
             let finalIcon = "https://placehold.co/100x100?text=User";
             let finalName = friend.displayName || "Unknown";
             let finalBio = "自己紹介なし";
+            let finalStats = { total: 0 };
+            let finalIsPublic = true; // デフォルトは公開
 
             try {
                 const userRef = doc(db, "users", friend.uid);
@@ -93,6 +95,14 @@ function startListeners() {
                     if (userData.bio) {
                         finalBio = userData.bio;
                     }
+
+                    if (userData.stats) {
+                        finalStats = userData.stats;
+                    }
+
+                    if (userData.isProfilePublic !== undefined) {
+                        finalIsPublic = userData.isProfilePublic;
+                    }
                 }
             } catch (err) {
                 console.error(`ID: ${friend.uid} の情報取得に失敗`, err);
@@ -103,6 +113,8 @@ function startListeners() {
                 displayName: finalName,
                 icon: finalIcon,
                 bio: finalBio,
+                stats: finalStats,
+                isProfilePublic: finalIsPublic,
                 stamps: existing?.stamps || generateRandomStamps()
             };
         });
@@ -152,8 +164,12 @@ function renderFriendList(listData, mode = "friend") {
         userInfoDiv.className = "user-info";
         
         const iconSrc = user.icon || user.avatarUrl || 'https://placehold.co/100x100?text=User';
-        const stampCount = user.stamps ? user.stamps.length : 0; 
+        const stampCount = (user.stats && user.stats.total !== undefined) ? user.stats.total : 0;
         const bioText = user.bio || "自己紹介なし"; 
+        
+        // 公開設定チェック (undefined または true なら公開)
+        const isPublic = user.isProfilePublic !== false;
+        const stampDisplay = isPublic ? `シール数: ${stampCount}` : `シール数: 非公開`;
 
         userInfoDiv.innerHTML = `
             <img src="${iconSrc}" class="user-icon" alt="icon">
@@ -164,7 +180,7 @@ function renderFriendList(listData, mode = "friend") {
                 </div>
                 <div class="user-bottom-row">
                     <span class="user-bio">${bioText}</span>
-                    <span class="user-stamp-badge">シール数: ${stampCount}</span>
+                    <span class="user-stamp-badge">${stampDisplay}</span>
                 </div>
             </div>
         `;
@@ -304,7 +320,8 @@ async function performSearch(keyword) {
             icon: user.icon || user.avatarUrl || "https://placehold.co/100x100?text=User",
             // スタンプ情報がなければ仮生成 (表示崩れ防止)
             stamps: user.stamps || generateRandomStamps(),
-            bio: user.bio || "自己紹介なし"
+            bio: user.bio || "自己紹介なし",
+            stats: user.stats || { total: 0 }
         }));
 
         renderFriendList(resultsWithDetails, "search");
@@ -484,7 +501,7 @@ async function showProfile(uid) {
 }
 
 // --- ランキング表示 ---
-function showRanking() {
+async function showRanking() {
     if(mainContent) {
         mainContent.style.padding = ""; 
         mainContent.style.display = ""; 
@@ -494,10 +511,36 @@ function showRanking() {
     profileContainer.style.display = "none";
     rankingContainer.style.display = "block";
 
-    const sorted = [...currentFriendsList].sort((a, b) => {
-        const lenA = a.stamps ? a.stamps.length : 0;
-        const lenB = b.stamps ? b.stamps.length : 0;
-        return lenB - lenA;
+    // ★追加: 自分自身のデータを取得してリストに加える
+    let allUsers = [...currentFriendsList];
+    const currentUser = auth.currentUser;
+
+    if (currentUser) {
+        try {
+            const userDocRef = doc(db, "users", currentUser.uid);
+            const userSnap = await getDoc(userDocRef);
+            if (userSnap.exists()) {
+                const myData = { uid: currentUser.uid, ...userSnap.data() };
+                // 重複チェック（念のため）
+                if (!allUsers.some(u => u.uid === currentUser.uid)) {
+                    allUsers.push(myData);
+                }
+            }
+        } catch (e) {
+            console.error("自分のランキング用データ取得失敗", e);
+        }
+    }
+
+    const sorted = allUsers
+        .filter(user => {
+            // 自分自身は無条件で表示、他人は非公開設定なら除外
+            if (currentUser && user.uid === currentUser.uid) return true;
+            return user.isProfilePublic !== false;
+        })
+        .sort((a, b) => {
+        const countA = (a.stats && a.stats.total !== undefined) ? a.stats.total : 0;
+        const countB = (b.stats && b.stats.total !== undefined) ? b.stats.total : 0;
+        return countB - countA;
     });
 
     if(rankingListUL) {
@@ -507,14 +550,22 @@ function showRanking() {
             const li = document.createElement("li");
             if (rank <= 3) li.classList.add(`rank-${rank}`); 
 
+            // ★追加: 自分自身の場合のスタイル (少しだけ目立たせる)
+            const isMe = (currentUser && friend.uid === currentUser.uid);
+            if (isMe) {
+                li.style.backgroundColor = "#f9f9f9"; // ほんのりグレー
+                li.style.border = "1px solid #ddd";
+            }
+
             let iconHtml = "";
             if (rank === 1) iconHtml = '<i class="fa-solid fa-crown" style="color:gold;"></i> ';
             else if (rank === 2) iconHtml = '<i class="fa-solid fa-crown" style="color:silver;"></i> ';
             else if (rank === 3) iconHtml = '<i class="fa-solid fa-crown" style="color:#cd7f32;"></i> ';
             
-            const stampCount = friend.stamps ? friend.stamps.length : 0;
-            const iconSrc = friend.icon || "https://placehold.co/100x100?text=User";
+            const stampCount = (friend.stats && friend.stats.total !== undefined) ? friend.stats.total : 0;
+            const iconSrc = friend.icon || friend.avatarUrl || "https://placehold.co/100x100?text=User";
             const bioText = friend.bio || "自己紹介なし";
+            const displayName = friend.displayName + (isMe ? " (あなた)" : "");
 
             li.innerHTML = `
                 <div style="display:flex; align-items:center; flex:1; overflow:hidden;">
@@ -522,7 +573,7 @@ function showRanking() {
                     <img src="${iconSrc}" style="width:40px; height:40px; border-radius:50%; margin:0 10px; object-fit:cover;">
                     <div class="user-details-container">
                         <div class="user-top-row">
-                            <strong class="user-name">${friend.displayName}</strong>
+                            <strong class="user-name">${displayName}</strong>
                             <span class="user-uid">ID: ${friend.uid.substring(0,8)}...</span>
                         </div>
                         <div class="user-bottom-row">
