@@ -276,7 +276,7 @@ function initializeMap(config) {
         // 1. まずFirebase Storageを確認する
         try {
             // Storageから直接画像URLを取得 (例: stamps/tokyo/北区_1.png)
-            const path = `stamps/tokyo/${municipalityName}_${level}.png`;
+            const path = `stamps/${prefectureId}/${municipalityName}_${level}.png`;
             imagePath = await storage.ref(path).getDownloadURL();
         } catch (e) {
         }
