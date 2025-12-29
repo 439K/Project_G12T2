@@ -12,24 +12,28 @@ document.addEventListener('DOMContentLoaded', function() {
     let saitamaGeoJSON = null;
     let stampGroup = null;
 
-    // 進捗データ
     let stampProgress = {}; 
-
-    // クールダウン期間 (5秒)
     const COOLDOWN_MS = 3 * 1000; 
     const MAX_STAMPS = 3; 
 
-    // レベルに応じた色
     const LEVEL_COLORS = {
-        0: "#e2ffdb", // 未獲得
-        1: "#ffe082", // レベル1
-        2: "#ffb300", // レベル2
-        3: "#ff8f00"  // レベル3
+        0: "#e2ffdb", 1: "#ffe082", 2: "#ffb300", 3: "#ff8f00"
     };
 
-    // 市区町村名と画像フォルダ名のマッピング (埼玉版)
+    // 【更新】さいたま市を区単位に分割し、他の市町村と並列に定義
     const MUNICIPALITY_PATH_MAP = {
-        "さいたま市": "saitama-shi",
+        // さいたま市 10区
+        "西区": "saitama-nishi",
+        "北区": "saitama-kita",
+        "大宮区": "saitama-omiya",
+        "見沼区": "saitama-minuma",
+        "中央区": "saitama-chuo",
+        "桜区": "saitama-sakura",
+        "浦和区": "saitama-urawa",
+        "南区": "saitama-minami",
+        "緑区": "saitama-midori",
+        "岩槻区": "saitama-iwatsuki",
+        // その他市町村
         "川越市": "kawagoe-shi",
         "熊谷市": "kumagaya-shi",
         "川口市": "kawaguchi-shi",
@@ -71,8 +75,14 @@ document.addEventListener('DOMContentLoaded', function() {
         "白岡市": "shiraoka-shi"
     };
 
-    function getStampImagePath(municipalityName, level) {
-        const pathName = MUNICIPALITY_PATH_MAP[municipalityName];
+    // 【便利関数】GeoJSONのFeatureから「区名」または「市町村名」を抽出する
+    function getTargetName(feature) {
+        // N03_005(区名)があればそれを使い、なければN03_004(市町村名)を使う
+        return feature.properties.N03_005 || feature.properties.N03_004;
+    }
+
+    function getStampImagePath(name, level) {
+        const pathName = MUNICIPALITY_PATH_MAP[name];
         if (!pathName) return "../stamp-img/default.png"; 
         return `../stamp-img/saitama/${pathName}/stamp${level}.png`;
     }
@@ -92,7 +102,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadProgress() {
         if (!currentUser || !saitamaGeoJSON) return;
-
         try {
             const doc = await db.collection('users').doc(currentUser.uid).collection('progress').doc('saitama').get();
             if (doc.exists) {
@@ -116,16 +125,17 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (stampGroup) stampGroup.selectAll("image").remove();
 
-        Object.keys(stampProgress).forEach(municipalityName => {
-            const progress = stampProgress[municipalityName];
-            const feature = saitamaGeoJSON.features.find(f => f.properties.N03_004 === municipalityName);
+        Object.keys(stampProgress).forEach(name => {
+            const progress = stampProgress[name];
+            // 復元時も N03_005 または N03_004 で検索
+            const feature = saitamaGeoJSON.features.find(f => getTargetName(f) === name);
             if (feature) {
-                svg.select("#mun-" + municipalityName)
+                svg.select("#mun-" + name)
                     .attr("fill", LEVEL_COLORS[progress.level])
                     .attr("stroke", "#f5d56cff")
                     .attr("stroke-width", progress.level === MAX_STAMPS ? 3 : 2);
                 
-                updateStampImage(municipalityName, feature, progress.level, false);
+                updateStampImage(name, feature, progress.level, false);
             }
         });
     }
@@ -136,7 +146,6 @@ document.addEventListener('DOMContentLoaded', function() {
         if (saitamaGeoJSON) {
             svg.selectAll(".municipality").attr("fill", LEVEL_COLORS[0]).attr("stroke", "#333").attr("stroke-width", 0.5);
         }
-        if (statusBox) statusBox.textContent = "地図上のエリアに移動してスタンプをゲットしよう！";
     }
 
     // =======================================================
@@ -153,17 +162,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const svg = d3.select("#map-container")
         .append("svg")
         .attr("viewBox", "0 0 960 500")
-        .attr("preserveAspectRatio", "xMidYMid meet")
-        .style("width", "100%")
-        .style("height", "100%");
+        .attr("preserveAspectRatio", "xMidYMid meet");
 
     d3.json("saitama.geojson", function(error, geojson) {
-        if (error) {
-            console.error("地図データの読み込みエラー:", error);
-            if (statusBox) statusBox.textContent = "地図データの読み込みに失敗しました。";
-            return;
-        }
-
+        if (error) return;
         saitamaGeoJSON = geojson;
 
         svg.selectAll("path")
@@ -171,23 +173,19 @@ document.addEventListener('DOMContentLoaded', function() {
             .enter()
             .append("path")
             .attr("class", "municipality")
-            .attr("id", d => "mun-" + d.properties.N03_004)
+            // IDに区名または市町村名を使用
+            .attr("id", d => "mun-" + getTargetName(d))
             .attr("d", path)
             .attr("fill", LEVEL_COLORS[0])
             .attr("stroke", "#333")
             .attr("stroke-width", 0.5);
 
         stampGroup = svg.append("g").attr("class", "stamp-group");
-
         loadProgress();
-
-        // オートチェック機能の実行（地図データ読み込み完了後）
         handleAutoCheck();
     });
 
-    if (checkBtn) {
-        checkBtn.addEventListener('click', getCurrentLocation);
-    }
+    if (checkBtn) checkBtn.addEventListener('click', getCurrentLocation);
     
     // =======================================================
     // 4. 認証とスタンプラリー機能
@@ -196,7 +194,6 @@ document.addEventListener('DOMContentLoaded', function() {
     firebase.auth().onAuthStateChanged(user => {
         if (user) {
             currentUser = user;
-            if (statusBox) statusBox.textContent = "ログインしました。データを読み込んでいます...";
             loadProgress();
         } else {
             currentUser = null;
@@ -205,38 +202,16 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     function getCurrentLocation() {
-        if (!currentUser) {
-            if (statusBox) statusBox.textContent = "この機能を利用するにはログインが必要です。";
-            return;
-        }
-
+        if (!currentUser || !saitamaGeoJSON) return;
         if (statusBox) statusBox.textContent = "位置情報を取得中です...";
 
-        if (!saitamaGeoJSON) {
-            if (statusBox) statusBox.textContent = "地図データを読み込み中です。しばらくお待ちください。";
-            return;
-        }
-
         if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(successCallback, errorCallback, {
-                enableHighAccuracy: true,
-                timeout: 5000,
-                maximumAge: 0
-            });
-        } else {
-            alert("お使いのブラウザは位置情報に対応していません。");
+            navigator.geolocation.getCurrentPosition(
+                (pos) => checkCurrentMunicipality(pos.coords.latitude, pos.coords.longitude),
+                () => { if (statusBox) statusBox.textContent = "位置情報の取得に失敗しました。"; },
+                { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+            );
         }
-    }
-
-    function successCallback(position) {
-        const lat = position.coords.latitude;
-        const lng = position.coords.longitude;
-        checkCurrentMunicipality(lat, lng); 
-    }
-
-    function errorCallback(error) {
-        if (statusBox) statusBox.textContent = "位置情報の取得に失敗しました。";
-        console.error("位置情報の取得に失敗しました:", error);
     }
 
     function checkCurrentMunicipality(currentLat, currentLng) {
@@ -245,58 +220,52 @@ document.addEventListener('DOMContentLoaded', function() {
 
         for (const feature of saitamaGeoJSON.features) {
             if (turf.booleanPointInPolygon(point, feature.geometry)) {
-                const municipalityName = feature.properties.N03_004; 
-                grantStamp(municipalityName, feature);
+                // 【更新】ここで区名を取得
+                const name = getTargetName(feature); 
+                grantStamp(name, feature);
                 found = true;
                 break; 
             }
         }
-        
-        if (!found && statusBox) {
-            statusBox.textContent = "エリア外です。埼玉県内に移動してください。";
-        }
+        if (!found && statusBox) statusBox.textContent = "エリア外です。";
     }
 
-    function grantStamp(municipalityName, feature) {
+    function grantStamp(name, feature) {
         const currentTime = Date.now();
-        let progress = stampProgress[municipalityName] || { level: 0, lastCheckIn: 0 };
-        const currentLevel = progress.level;
+        let progress = stampProgress[name] || { level: 0, lastCheckIn: 0 };
 
-        if (currentLevel >= MAX_STAMPS) {
-            if (statusBox) statusBox.textContent = `${municipalityName} のスタンプはすべて獲得済みです！(Lv.${MAX_STAMPS})`;
+        if (progress.level >= MAX_STAMPS) {
+            if (statusBox) statusBox.textContent = `${name} は獲得済みです！`;
             return;
         }
 
         const timeElapsed = currentTime - progress.lastCheckIn;
         if (timeElapsed < COOLDOWN_MS) {
-            const timeLeftSec = Math.ceil((COOLDOWN_MS - timeElapsed) / 1000);
-            if (statusBox) statusBox.textContent = `${municipalityName} の次まであと ${timeLeftSec} 秒お待ちください。`;
+            if (statusBox) statusBox.textContent = "クールダウン中です...";
             return;
         }
 
         progress.level += 1;
         progress.lastCheckIn = currentTime;
-        stampProgress[municipalityName] = progress;
+        stampProgress[name] = progress;
         saveProgress();
-        const newLevel = progress.level;
 
-        svg.select("#mun-" + municipalityName)
+        svg.select("#mun-" + name)
             .transition().duration(500)
-            .attr("fill", LEVEL_COLORS[newLevel])
+            .attr("fill", LEVEL_COLORS[progress.level])
             .attr("stroke", "#f5d56cff")
-            .attr("stroke-width", newLevel === MAX_STAMPS ? 3 : 2);
+            .attr("stroke-width", progress.level === MAX_STAMPS ? 3 : 2);
 
-        updateStampImage(municipalityName, feature, newLevel, true);
-
-        if (statusBox) statusBox.textContent = `${municipalityName} のスタンプ (Lv.${newLevel}/${MAX_STAMPS}) を獲得！`;
+        updateStampImage(name, feature, progress.level, true);
+        if (statusBox) statusBox.textContent = `${name} のスタンプを獲得！`;
     }
 
-    function updateStampImage(municipalityName, feature, level, useTransition) {
-        const stampId = "stamp-" + municipalityName;
+    function updateStampImage(name, feature, level, useTransition) {
+        const stampId = "stamp-" + name;
         let stampElement = d3.select("#" + stampId);
         const centroid = path.centroid(feature); 
         const currentSize = 30 + (level - 1) * 10; 
-        const imagePath = getStampImagePath(municipalityName, level);
+        const imagePath = getStampImagePath(name, level);
 
         if (stampElement.empty()) {
             stampElement = stampGroup.append("image")
@@ -308,11 +277,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 .attr("height", currentSize)
                 .attr("opacity", 0);
             
-            if (useTransition) {
-                stampElement.transition().duration(500).attr("opacity", 1);
-            } else {
-                stampElement.attr("opacity", 1);
-            }
+            const target = useTransition ? stampElement.transition().duration(500) : stampElement;
+            target.attr("opacity", 1);
         } else {
             const el = useTransition ? stampElement.transition().duration(300) : stampElement;
             el.attr("href", imagePath)
@@ -323,17 +289,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // =======================================================
-    // 5. コンフリクト解消：オートチェック機能
-    // =======================================================
     function handleAutoCheck() {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('autocheck') === 'true') {
-            setTimeout(() => {
-                if (typeof getCurrentLocation === 'function') {
-                    getCurrentLocation();
-                }
-            }, 500);
+            setTimeout(() => { if (typeof getCurrentLocation === 'function') getCurrentLocation(); }, 500);
         }
     }
 });
