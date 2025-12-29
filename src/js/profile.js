@@ -99,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // 各都道府県のスタンプ総数定義
             const PREF_STAMP_TOTALS = {
                 "hokkaido": 0, "aomori": 0, "iwate": 0, "miyagi": 0, "akita": 0, "yamagata": 0, "fukushima": 0,
-                "ibaraki": 132, "tochigi": 75, "gunma": 105, "saitama": 189, "chiba": 162, "tokyo": 186, "kanagawa": 99,
+                "ibaraki": 132, "tochigi": 75, "gunma": 105, "saitama": 216, "chiba": 177, "tokyo": 186, "kanagawa": 174,
                 "niigata": 0, "toyama": 45, "ishikawa": 0, "fukui": 0, "yamanashi": 0, "nagano": 0, "gifu": 0, "shizuoka": 0, "aichi": 0,
                 "mie": 0, "shiga": 0, "kyoto": 0, "osaka": 0, "hyogo": 0, "nara": 0, "wakayama": 0,
                 "tottori": 0, "shimane": 0, "okayama": 0, "hiroshima": 0, "yamaguchi": 0,
