@@ -1,4 +1,4 @@
-import { auth, db, onAuthStateChanged, doc, setDoc, getDoc } from './firebase-service.js'; 
+import { auth, db, storage, ref, getDownloadURL, onAuthStateChanged, doc, setDoc, getDoc, collection, getDocs } from './firebase-service.js'; 
 import { 
     searchUsers, 
     sendFriendRequest, 
@@ -17,6 +17,30 @@ const stampMasterData = {
     "kani_rare.png": { name: "豪華なカニ", description: "福井県でカニの真髄に触れた証。" },
     "goheimochi.png": { name: "五平餅", description: "岐阜・長野でゲット！甘辛いタレが香ばしい。" },
     "udon.png": { name: "うどん", description: "香川県でゲット！コシのある麺がたまらない。" }
+};
+
+// ★追加: 市町村名と画像フォルダ名のマッピング (collection.jsより移植)
+const MUNICIPALITY_PATH_MAP = {
+    // 東京都
+    "千代田区": "chiyoda-ku", "中央区": "chuo-ku", "港区": "minato-ku", "新宿区": "shinjuku-ku",
+    "文京区": "bunkyo-ku", "台東区": "taito-ku", "墨田区": "sumida-ku", "江東区": "koto-ku",
+    "品川区": "shinagawa-ku", "目黒区": "meguro-ku", "大田区": "ota-ku", "世田谷区": "setagaya-ku",
+    "渋谷区": "shibuya-ku", "中野区": "nakano-ku", "杉並区": "suginami-ku", "豊島区": "toshima-ku",
+    "北区": "kita-ku", "荒川区": "arakawa-ku", "板橋区": "itabashi-ku", "練馬区": "nerima-ku",
+    "足立区": "adachi-ku", "葛飾区": "katsushika-ku", "江戸川区": "edogawa-ku",
+    // 神奈川県
+    "横浜市": "yokohama-shi", "川崎市": "kawasaki-shi", "相模原市": "sagamihara-shi",
+    "横須賀市": "yokosuka-shi", "鎌倉市": "kamakura-shi", "藤沢市": "fujisawa-shi",
+    "小田原市": "odawara-shi", "茅ヶ崎市": "chigasaki-shi", "逗子市": "zushi-shi",
+    "三浦市": "miura-shi", "秦野市": "hadano-shi", "厚木市": "atsugi-shi",
+    "大和市": "yamato-shi", "伊勢原市": "isehara-shi", "海老名市": "ebina-shi",
+    "座間市": "zama-shi", "南足柄市": "minamiashigara-shi", "綾瀬市": "ayase-shi",
+    "葉山町": "hayama-machi", "寒川町": "samukawa-machi", "大磯町": "oiso-machi",
+    "二宮町": "ninomiya-machi", "中井町": "nakai-machi", "大井町": "oi-machi",
+    "松田町": "matsuda-machi", "山北町": "yamakita-machi", "開成町": "kaisei-machi",
+    "箱根町": "hakone-machi", "真鶴町": "manazuru-machi", "湯河原町": "yugawara-machi",
+    "愛川町": "aikawa-machi", "清川村": "kiyokawa-mura"
+    // 必要に応じて他の県も追加
 };
 
 const stampKeys = Object.keys(stampMasterData);
@@ -462,33 +486,114 @@ async function showProfile(uid) {
         }
 
         // スタンプ描画処理（公開されている場合のみ実行）
+        // ★修正: Firestoreから実際の獲得スタンプを取得して表示
         const insertArea = document.getElementById("friend-stamps-insert-area");
         if(insertArea && isPublic) {
-            const displayStamps = (userData.stamps && userData.stamps.length > 0) ? userData.stamps : (friendSimple?.stamps || []);
-            
-            if (!displayStamps || displayStamps.length === 0) {
-                insertArea.innerHTML = "<p style='color:#999; font-size:14px;'>シールはまだありません</p>";
-            } else {
-                const gridDiv = document.createElement("div");
-                gridDiv.className = "friend-stamps-grid";
+            insertArea.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> 読み込み中...</div>';
 
-                displayStamps.forEach(stampId => {
-                    const key = (typeof stampId === 'string') ? stampId : stampId.id; 
-                    const data = stampMasterData[key];
-                    if(!data) return;
+            try {
+                // progressサブコレクションを取得
+                const progressRef = collection(db, "users", uid, "progress");
+                const progressSnap = await getDocs(progressRef);
 
-                    const itemDiv = document.createElement("div");
-                    itemDiv.className = "friend-stamp-item";
-                    itemDiv.innerHTML = `<img src="${STAMP_IMAGE_PATH + data.name}" class="friend-stamp-img" alt="${data.name}">`;
-                    
-                    itemDiv.addEventListener("click", () => {
-                        if(typeof openModal === "function") openModal(key);
-                        else alert(`${data.name}\n${data.description}`);
+                let earnedStamps = [];
+
+                progressSnap.forEach(doc => {
+                    const prefId = doc.id;
+                    const data = doc.data();
+                    const cities = data.stamps || {}; 
+
+                    Object.keys(cities).forEach(cityName => {
+                        const cityData = cities[cityName];
+                        if (cityData && cityData.level > 0) {
+                            // レベルごとにスタンプ情報を生成
+                            for (let l = 1; l <= cityData.level; l++) {
+                                 earnedStamps.push({
+                                    prefId: prefId,
+                                    cityName: cityName,
+                                    level: l
+                                });
+                            }
+                        }
+                    });
+                });
+
+                // ランダムに5つ抽出（「最近」のデータがないため）
+                const displayStamps = earnedStamps.sort(() => 0.5 - Math.random()).slice(0, 5);
+
+                if (displayStamps.length === 0) {
+                    insertArea.innerHTML = "<p style='color:#999; font-size:14px; text-align:center;'>シールはまだありません</p>";
+                } else {
+                    const gridDiv = document.createElement("div");
+                    gridDiv.className = "friend-stamps-grid";
+
+                    // ★修正: Storageから画像URLを取得 (非同期処理)
+                    const stampPromises = displayStamps.map(async (stamp) => {
+                        let src = "../src/images/NoneCeal.png"; 
+                        const pathName = MUNICIPALITY_PATH_MAP[stamp.cityName];
+                        
+                        // 1. ローカルパス (フォールバック用)
+                        if (pathName) {
+                            src = `prefecture/stamp-img/${stamp.prefId}/${pathName}/stamp${stamp.level}.png`;
+                        }
+
+                        // 2. StorageからURL取得を試みる
+                        try {
+                            // A. 市区町村固有
+                            const municipalityPath = `stamps/${stamp.prefId}/${stamp.cityName}_${stamp.level}.png`;
+                            src = await getDownloadURL(ref(storage, municipalityPath));
+                        } catch (e1) {
+                            try {
+                                // B. 都道府県共通
+                                const prefecturePath = `stamps/${stamp.prefId}/${stamp.prefId}_${stamp.level}.png`;
+                                src = await getDownloadURL(ref(storage, prefecturePath));
+                            } catch (e2) {
+                                // C. どちらもなければローカルパスを使用
+                            }
+                        }
+                        return { ...stamp, src };
+                    });
+
+                    const resolvedStamps = await Promise.all(stampPromises);
+
+                    resolvedStamps.forEach(stamp => {
+                        const itemDiv = document.createElement("div");
+                        itemDiv.className = "friend-stamp-item";
+                        
+                        const img = document.createElement("img");
+                        img.src = stamp.src;
+                        img.className = "friend-stamp-img";
+                        img.alt = `${stamp.cityName}`;
+                        img.title = `${stamp.cityName} (Lv.${stamp.level})`;
+                        
+                        // 画像読み込みエラー時はデフォルト画像へ
+                        img.onerror = function() {
+                            this.src = "../src/images/NoneCeal.png";
+                        };
+
+                        itemDiv.appendChild(img);
+                        
+                        // クリック時のアクション（簡易アラート）
+                        itemDiv.addEventListener("click", () => {
+                            alert(`${stamp.cityName}のスタンプ (Lv.${stamp.level})`);
+                        });
+                        
+                        gridDiv.appendChild(itemDiv);
                     });
                     
-                    gridDiv.appendChild(itemDiv);
-                });
-                insertArea.appendChild(gridDiv);
+                    insertArea.innerHTML = "";
+                    insertArea.appendChild(gridDiv);
+                }
+
+            } catch (err) {
+                console.error("スタンプデータ取得エラー:", err);
+                let msg = "データの読み込みに失敗しました";
+                if (err.code === 'permission-denied') {
+                    msg = "閲覧権限がありません。<br>Firestoreルールで progress の読み取りを許可してください。";
+                } else {
+                    msg += `<br><span style="font-size:0.8em;">${err.message}</span>`;
+                }
+                insertArea.innerHTML = `<p style="text-align:center; color:red;">${msg}</p>`;
             }
         }
 
