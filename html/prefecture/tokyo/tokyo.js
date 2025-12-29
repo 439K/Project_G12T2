@@ -1,9 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     
     // =======================================================
-    // 1. Firebase, 定数, UI要素, 状態の定義
+    // 1. グローバル状態、定数、UI要素の定義
     // =======================================================
     const db = firebase.firestore();
+    const storage = firebase.storage();
     let currentUser = null;
 
     const statusBox = document.getElementById('status-box') || document.getElementById('status');
@@ -247,7 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    function grantStamp(municipalityName, feature) {
+    async function grantStamp(municipalityName, feature) {
         const currentTime = Date.now();
         let progress = stampProgress[municipalityName] || { level: 0, lastCheckIn: 0 };
         const currentLevel = progress.level;
@@ -286,12 +287,21 @@ document.addEventListener('DOMContentLoaded', function() {
         if (statusBox) statusBox.textContent = `${municipalityName} のスタンプ (Lv.${newLevel}/${MAX_STAMPS}) を獲得！`;
     }
 
-    function updateStampImage(municipalityName, feature, level, useTransition) {
+    async function updateStampImage(municipalityName, feature, level, useTransition) {
         const stampId = "stamp-" + municipalityName;
         let stampElement = d3.select("#" + stampId);
         const centroid = path.centroid(feature); 
         const currentSize = 30 + (level - 1) * 10; 
-        const imagePath = getStampImagePath(municipalityName, level);
+        
+        // デフォルトはローカルのレベル別画像
+        let imagePath = getStampImagePath(municipalityName, level);
+        // Firebaseから画像URLを取得して上書き
+        try {
+            // Storageから直接画像URLを取得 (例: stamps/tokyo/北区_1.png)
+            const path = `stamps/tokyo/${municipalityName}_${level}.png`;
+            imagePath = await storage.ref(path).getDownloadURL();
+        } catch (e) {
+        }
 
         if (stampElement.empty()) {
             stampElement = stampGroup.append("image")
@@ -309,12 +319,25 @@ document.addEventListener('DOMContentLoaded', function() {
                 stampElement.attr("opacity", 1);
             }
         } else {
-            const el = useTransition ? stampElement.transition().duration(300) : stampElement;
-            el.attr("href", imagePath)
+            // 画像のパスはアニメーションできないため、transitionの前に即時更新する
+            stampElement.attr("xlink:href", imagePath);
+            stampElement.transition().duration(300)
                 .attr("x", centroid[0] - currentSize / 2)
                 .attr("y", centroid[1] - currentSize / 2)
                 .attr("width", currentSize)
                 .attr("height", currentSize);
         }
+    }
+
+    // Auto-check logic
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('autocheck') === 'true') {
+        // A small delay might be needed to ensure the map/data is ready
+        setTimeout(() => {
+            // Check if getCurrentLocation function exists before calling
+            if (typeof getCurrentLocation === 'function') {
+                getCurrentLocation();
+            }
+        }, 500);
     }
 });

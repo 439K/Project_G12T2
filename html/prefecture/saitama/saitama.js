@@ -323,5 +323,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 .attr("width", currentSize)
                 .attr("height", currentSize);
         }
+      
+      // =======================================================
+    // 5. 自動チェックイン機能 (コンフリクト解消部分)
+    // =======================================================
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('autocheck') === 'true') {
+        // 地図やデータの読み込み完了を待つため少し遅延させる
+        setTimeout(() => {
+            if (typeof getCurrentLocation === 'function') {
+                getCurrentLocation();
+            }
+        }, 500);
     }
 });
+    }
+

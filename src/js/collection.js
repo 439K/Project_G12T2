@@ -159,9 +159,36 @@ const createCity = (name, kana, customStamps = null) => {
             for(let i=0; i<remaining; i++) stamps.push({ src: "../src/images/NoneCeal.png", desc: "", earned: false });
         }
     } else {
-        stamps = Array(STAMP_LIMIT).fill({ src: "../src/images/NoneCeal.png", desc: "", earned: false });
+        // 修正: fillを使うとオブジェクトの参照が共有されてしまうため、ループで個別に生成する
+        for (let i = 0; i < STAMP_LIMIT; i++) {
+            stamps.push({ src: "../src/images/NoneCeal.png", desc: "", earned: false });
+        }
     }
     return { name, kana, stamps };
+};
+
+// ■ 1.5 マッピング定義 (tokyo.js等から移植・拡張)
+const MUNICIPALITY_PATH_MAP = {
+    // 東京都
+    "千代田区": "chiyoda-ku", "中央区": "chuo-ku", "港区": "minato-ku", "新宿区": "shinjuku-ku",
+    "文京区": "bunkyo-ku", "台東区": "taito-ku", "墨田区": "sumida-ku", "江東区": "koto-ku",
+    "品川区": "shinagawa-ku", "目黒区": "meguro-ku", "大田区": "ota-ku", "世田谷区": "setagaya-ku",
+    "渋谷区": "shibuya-ku", "中野区": "nakano-ku", "杉並区": "suginami-ku", "豊島区": "toshima-ku",
+    "北区": "kita-ku", "荒川区": "arakawa-ku", "板橋区": "itabashi-ku", "練馬区": "nerima-ku",
+    "足立区": "adachi-ku", "葛飾区": "katsushika-ku", "江戸川区": "edogawa-ku",
+    // 神奈川県 (例)
+    "横浜市": "yokohama-shi", "川崎市": "kawasaki-shi", "相模原市": "sagamihara-shi",
+    "横須賀市": "yokosuka-shi", "鎌倉市": "kamakura-shi", "藤沢市": "fujisawa-shi",
+    "小田原市": "odawara-shi", "茅ヶ崎市": "chigasaki-shi", "逗子市": "zushi-shi",
+    "三浦市": "miura-shi", "秦野市": "hadano-shi", "厚木市": "atsugi-shi",
+    "大和市": "yamato-shi", "伊勢原市": "isehara-shi", "海老名市": "ebina-shi",
+    "座間市": "zama-shi", "南足柄市": "minamiashigara-shi", "綾瀬市": "ayase-shi",
+    "葉山町": "hayama-machi", "寒川町": "samukawa-machi", "大磯町": "oiso-machi",
+    "二宮町": "ninomiya-machi", "中井町": "nakai-machi", "大井町": "oi-machi",
+    "松田町": "matsuda-machi", "山北町": "yamakita-machi", "開成町": "kaisei-machi",
+    "箱根町": "hakone-machi", "真鶴町": "manazuru-machi", "湯河原町": "yugawara-machi",
+    "愛川町": "aikawa-machi", "清川村": "kiyokawa-mura"
+    // 他の県も必要に応じて追加
 };
 
 // ■ 2. データ定義
@@ -171,6 +198,7 @@ const collectionData = [
         prefs: [
             {
                 name: "富山県",
+                id: "toyama", // ★追加: FirestoreのドキュメントID
                 cities: [
                     // コンプリート例（3つとも earned: true）
                     createCity("富山市", "とやまし", [
@@ -201,6 +229,7 @@ const collectionData = [
         prefs: [
             {
                 name: "東京都",
+                id: "tokyo", // ★追加: FirestoreのドキュメントID
                 cities: [
                     // コンプリートしていない例
                     createCity("千代田区", "ちよだく", [{ src: "../src/images/tokyo-station.png", desc: "東京駅", earned: true }]),
@@ -269,6 +298,7 @@ const collectionData = [
             },
             {
                 name: "神奈川県",
+                id: "kanagawa", // ★追加: FirestoreのドキュメントID
                 cities: [
                     createCity("横浜市", "よこはまし", [{ src: "../src/images/minatomirai.png", desc: "みなとみらい", earned: true }]),
                     createCity("川崎市", "かわさきし"),
@@ -307,6 +337,7 @@ const collectionData = [
             },
             {
                 name: "埼玉県",
+                id: "saitama", // ★追加
                 cities: [
                     createCity("さいたま市", "さいたまし"),
                     createCity("川越市", "かわごえし"),
@@ -375,6 +406,7 @@ const collectionData = [
             },
             {
                 name: "千葉県",
+                id: "chiba", // ★追加
                 cities: [
                     createCity("千葉市", "ちばし"),
                     createCity("銚子市", "ちょうしし"),
@@ -434,6 +466,7 @@ const collectionData = [
             },
             {
                 name: "茨城県",
+                id: "ibaraki", // ★追加
                 cities: [
                     createCity("水戸市", "みとし"),
                     createCity("日立市", "ひたちし"),
@@ -483,6 +516,7 @@ const collectionData = [
             },
             {
                 name: "栃木県",
+                id: "tochigi", // ★追加
                 cities: [
                     createCity("宇都宮市", "うつのみやし"),
                     createCity("足利市", "あしかがし"),
@@ -513,6 +547,7 @@ const collectionData = [
             },
             {
                 name: "群馬県",
+                id: "gunma", // ★追加
                 cities: [
                     createCity("前橋市", "まえばしし"),
                     createCity("高崎市", "たかさきし"),
@@ -808,9 +843,103 @@ function setupEvents() {
     });
 }
 
+// ■ 5.5 データ統合処理 (Firestore -> collectionData)
+async function fetchAndMergeProgress(user) {
+    const db = firebase.firestore();
+    // Storageの取得を安全に行う（SDK未読み込み時のエラー回避）
+    let storage = null;
+    try {
+        if (firebase.storage) {
+            storage = firebase.storage();
+        }
+    } catch (e) {
+    }
+    try {
+        // ユーザーの進捗サブコレクションを一括取得
+        const snapshot = await db.collection('users').doc(user.uid).collection('progress').get();
+        
+        if (snapshot.empty) return;
+
+        // 取得したデータをマップ化 (例: { "tokyo": { "北区": { level: 1 } }, ... })
+        const progressMap = {};
+        snapshot.forEach(doc => {
+            progressMap[doc.id] = doc.data().stamps || {};
+        });
+
+        // 画像URL取得のPromiseを格納する配列
+        const imagePromises = [];
+
+        // collectionData を走査してデータを反映
+        collectionData.forEach(region => {
+            region.prefs.forEach(pref => {
+                // Firestoreにこの県のデータがあるか確認
+                const prefProgress = progressMap[pref.id];
+                if (!prefProgress) return;
+
+                pref.cities.forEach(city => {
+                    // この市のデータがあるか確認
+                    const cityData = prefProgress[city.name];
+                    if (cityData && cityData.level > 0) {
+                        const level = cityData.level;
+                        const pathName = MUNICIPALITY_PATH_MAP[city.name];
+                        
+                        // レベルに応じてスタンプ情報を更新
+                        for (let i = 0; i < city.stamps.length; i++) {
+                            if (i < level) {
+                                city.stamps[i].earned = true;
+                                city.stamps[i].desc = `${city.name}のスタンプ (Lv.${i + 1})`;
+
+                                // 1. まずローカルパスをデフォルトとして設定
+                                if (pathName) {
+                                    city.stamps[i].src = `prefecture/stamp-img/${pref.id}/${pathName}/stamp${i + 1}.png`;
+                                }
+
+                                // 2. Storageが利用可能なら、URLを取得して上書きする
+                                if (storage) {
+                                    const storagePath = `stamps/${pref.id}/${city.name}_${i + 1}.png`;
+                                    const p = storage.ref(storagePath).getDownloadURL()
+                                        .then((url) => {
+                                            city.stamps[i].src = url;
+                                        })
+                                        .catch(() => {}); // 失敗してもローカルパスがあるので無視
+                                    imagePromises.push(p);
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+        });
+
+        // 全ての画像URL取得が完了するのを待つ
+        if (imagePromises.length > 0) {
+            await Promise.all(imagePromises);
+        }
+
+    } catch (error) {
+        console.error("スタンプデータの読み込みに失敗:", error);
+    }
+}
 
 // ■ 6. 実行
 document.addEventListener("DOMContentLoaded", () => {
-    renderCollections();
-    setupEvents();
+    // Firebase認証状態を監視してデータを読み込む
+    if (typeof firebase !== 'undefined' && firebase.auth && firebase.apps && firebase.apps.length > 0) {
+        firebase.auth().onAuthStateChanged(async (user) => {
+            if (user) {
+                try {
+                    await fetchAndMergeProgress(user);
+                } catch (e) {
+                    console.error("データ読み込みエラー（描画は続行します）:", e);
+                }
+            }
+            // データ反映後に描画
+            renderCollections();
+            setupEvents();
+        });
+    } else {
+        // Firebaseがない場合はそのまま描画
+        renderCollections();
+        setupEvents();
+    }
 });

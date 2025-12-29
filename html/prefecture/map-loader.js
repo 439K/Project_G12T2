@@ -8,6 +8,7 @@ function initializeMap(config) {
     // 1. Firebase, 定数, UI要素, 状態の定義
     // =======================================================
     const db = firebase.firestore();
+    const storage = firebase.storage();
     let currentUser = null;
 
     const statusBox = document.getElementById('status-box') || document.getElementById('status');
@@ -264,12 +265,26 @@ function initializeMap(config) {
         if (statusBox) statusBox.textContent = `${municipalityName} のスタンプ (Lv.${newLevel}/${MAX_STAMPS}) を獲得！`;
     }
 
-    function updateStampImage(municipalityName, feature, level, useTransition) {
+    async function updateStampImage(municipalityName, feature, level, useTransition) {
         const stampId = "stamp-" + municipalityName;
         let stampElement = d3.select("#" + stampId);
         const centroid = path.centroid(feature); 
         const currentSize = 30 + (level - 1) * 10; 
-        const imagePath = getStampImagePath(municipalityName, level);
+        
+        let imagePath = null;
+
+        // 1. まずFirebase Storageを確認する
+        try {
+            // Storageから直接画像URLを取得 (例: stamps/tokyo/北区_1.png)
+            const path = `stamps/tokyo/${municipalityName}_${level}.png`;
+            imagePath = await storage.ref(path).getDownloadURL();
+        } catch (e) {
+        }
+
+        // 2. Firebaseになければローカル画像を使用
+        if (!imagePath) {
+            imagePath = getStampImagePath(municipalityName, level);
+        }
 
         if (stampElement.empty()) {
             stampElement = stampGroup.append("image")
@@ -287,8 +302,10 @@ function initializeMap(config) {
                 stampElement.attr("opacity", 1);
             }
         } else {
-            const el = useTransition ? stampElement.transition().duration(300) : stampElement;
-            el.attr("href", imagePath)
+            // 画像のパスはアニメーションできないため、transitionの前に即時更新する
+            stampElement.attr("xlink:href", imagePath);
+            stampElement.attr("href", imagePath);
+            stampElement.transition().duration(300)
                 .attr("x", centroid[0] - currentSize / 2)
                 .attr("y", centroid[1] - currentSize / 2)
                 .attr("width", currentSize)
