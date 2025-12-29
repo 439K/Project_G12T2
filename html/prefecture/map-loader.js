@@ -1,7 +1,7 @@
 /**
  * map-loader.js
  * 各都道府県のHTMLから呼び出される共通地図読み込みライブラリ
- * モーダル表示・スタンプ大型化・キャッシュ機能統合版
+ * モーダル表示・可変サイズ・キャッシュ・新クールダウン機能統合版
  */
 function initializeMap(config) {
     // =======================================================
@@ -11,8 +11,13 @@ function initializeMap(config) {
         prefectureId, 
         geojsonPath, 
         projectionConfig, 
-        municipalityPathMap 
+        municipalityPathMap,
+        stampSizeConfig // HTML側で指定するサイズ設定
     } = config;
+
+    // サイズ設定のデフォルト値（HTML側で未指定の場合の予備）
+    const baseSize = (stampSizeConfig && stampSizeConfig.base) ? stampSizeConfig.base : 50;
+    const incSize = (stampSizeConfig && stampSizeConfig.increment) ? stampSizeConfig.increment : 15;
 
     const db = firebase.firestore();
     const storage = firebase.storage();
@@ -28,10 +33,7 @@ function initializeMap(config) {
     // 定数
     const MAX_STAMPS = 3; 
     const LEVEL_COLORS = {
-        0: "#e2ffdb", // 未獲得
-        1: "#ffe082", // レベル1
-        2: "#ffb300", // レベル2
-        3: "#ff8f00"  // レベル3
+        0: "#e2ffdb", 1: "#ffe082", 2: "#ffb300", 3: "#ff8f00"
     };
 
     function getTargetName(feature) {
@@ -45,10 +47,8 @@ function initializeMap(config) {
     }
 
     // =======================================================
-    // 2. データの保存と復元（キャッシュ機能追加）
+    // 2. データの保存と復元（キャッシュ機能）
     // =======================================================
-
-    // キャッシュ用のキーを生成
     function getCacheKey() {
         return currentUser ? `stamp_cache_${prefectureId}_${currentUser.uid}` : null;
     }
@@ -56,16 +56,12 @@ function initializeMap(config) {
     async function saveProgress() {
         if (!currentUser) return;
         try {
-            // 1. Firebaseへ保存
             await db.collection('users').doc(currentUser.uid)
                     .collection('progress').doc(prefectureId)
                     .set({ stamps: stampProgress });
 
-            // 2. ローカルキャッシュへ保存
             const key = getCacheKey();
-            if (key) {
-                localStorage.setItem(key, JSON.stringify(stampProgress));
-            }
+            if (key) localStorage.setItem(key, JSON.stringify(stampProgress));
         } catch (error) {
             console.error("データの保存に失敗:", error);
         }
@@ -73,59 +69,42 @@ function initializeMap(config) {
 
     async function loadProgress() {
         if (!currentUser || !geoJSONData) return;
-
         const key = getCacheKey();
 
-        // 1. まずはキャッシュから読み込んで即座に表示
+        // 1. まずキャッシュから表示
         if (key) {
             const cachedData = localStorage.getItem(key);
             if (cachedData) {
                 try {
                     stampProgress = JSON.parse(cachedData);
                     restoreMapState();
-                    console.log("キャッシュからデータを復元しました");
-                } catch (e) {
-                    console.error("キャッシュデータの解析に失敗:", e);
-                }
+                } catch (e) { console.error("キャッシュ解析失敗", e); }
             }
         }
 
-        // 2. 次にFirebaseから最新データを取得（バックグラウンド更新）
+        // 2. Firebaseから最新取得
         try {
             const doc = await db.collection('users').doc(currentUser.uid)
                             .collection('progress').doc(prefectureId).get();
-            
             if (doc.exists) {
                 const cloudData = doc.data().stamps || {};
-                
-                // キャッシュとデータが異なる場合のみ再描画
                 if (JSON.stringify(stampProgress) !== JSON.stringify(cloudData)) {
                     stampProgress = cloudData;
-                    if (key) {
-                        localStorage.setItem(key, JSON.stringify(stampProgress));
-                    }
+                    if (key) localStorage.setItem(key, JSON.stringify(stampProgress));
                     restoreMapState();
-                    console.log("Firebaseの最新データと同期しました");
                 }
             } else if (!localStorage.getItem(key)) {
-                // クラウドにもキャッシュにもデータがない場合のみリセット
                 resetMapAndProgress();
             }
         } catch (error) {
-            console.error("Firebaseからの読み込みに失敗（オフラインの可能性があります）:", error);
+            console.error("Firebase読み込み失敗（オフライン）", error);
         }
     }
 
     function restoreMapState() {
         if (!geoJSONData) return;
-
-        svg.selectAll(".municipality")
-            .attr("fill", LEVEL_COLORS[0])
-            .attr("stroke", "#333")
-            .attr("stroke-width", 0.5);
-        
+        svg.selectAll(".municipality").attr("fill", LEVEL_COLORS[0]).attr("stroke", "#333").attr("stroke-width", 0.5);
         if (stampGroup) stampGroup.selectAll("image").remove();
-
         Object.keys(stampProgress).forEach(name => {
             const progress = stampProgress[name];
             const feature = geoJSONData.features.find(f => getTargetName(f) === name);
@@ -134,7 +113,6 @@ function initializeMap(config) {
                     .attr("fill", LEVEL_COLORS[progress.level])
                     .attr("stroke", "#f5d56cff")
                     .attr("stroke-width", progress.level === MAX_STAMPS ? 3 : 2);
-                
                 updateStampImage(name, feature, progress.level, false);
             }
         });
@@ -144,19 +122,15 @@ function initializeMap(config) {
         stampProgress = {};
         if (stampGroup) stampGroup.selectAll("image").remove();
         if (geoJSONData) {
-            svg.selectAll(".municipality")
-                .attr("fill", LEVEL_COLORS[0])
-                .attr("stroke", "#333")
-                .attr("stroke-width", 0.5);
+            svg.selectAll(".municipality").attr("fill", LEVEL_COLORS[0]).attr("stroke", "#333").attr("stroke-width", 0.5);
         }
         const key = getCacheKey();
         if (key) localStorage.removeItem(key);
     }
 
     // =======================================================
-    // 3. D3.jsの初期化と描画
+    // 3. D3.jsの初期化
     // =======================================================
-
     const projection = d3.geoMercator()
         .scale(projectionConfig.scale) 
         .center(projectionConfig.center) 
@@ -172,46 +146,27 @@ function initializeMap(config) {
         .style("height", "100%");
 
     d3.json(geojsonPath, function(error, geojson) {
-        if (error) {
-            console.error("地図データの読み込みエラー:", error);
-            return;
-        }
+        if (error) return;
         geoJSONData = geojson;
-
         svg.selectAll("path")
-            .data(geojson.features)
-            .enter()
-            .append("path")
+            .data(geojson.features).enter().append("path")
             .attr("class", "municipality")
             .attr("id", d => "mun-" + getTargetName(d))
             .attr("d", path)
             .attr("fill", LEVEL_COLORS[0])
             .attr("stroke", "#333")
             .attr("stroke-width", 0.5);
-
         stampGroup = svg.append("g").attr("class", "stamp-group");
-
         loadProgress();
         handleAutoCheck();
         setupModalEvents(); 
     });
 
-    if (checkBtn) {
-        checkBtn.addEventListener('click', getCurrentLocation);
-    }
+    if (checkBtn) checkBtn.addEventListener('click', getCurrentLocation);
     
-    // =======================================================
-    // 4. スタンプラリーロジック & 画像更新
-    // =======================================================
-
     firebase.auth().onAuthStateChanged(user => {
-        if (user) {
-            currentUser = user;
-            loadProgress();
-        } else {
-            currentUser = null;
-            resetMapAndProgress();
-        }
+        if (user) { currentUser = user; loadProgress(); }
+        else { currentUser = null; resetMapAndProgress(); }
     });
 
     function getCurrentLocation() {
@@ -220,7 +175,6 @@ function initializeMap(config) {
             return;
         }
         if (statusBox) statusBox.textContent = "位置情報を取得中です...";
-
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (pos) => checkCurrentMunicipality(pos.coords.latitude, pos.coords.longitude),
@@ -233,11 +187,9 @@ function initializeMap(config) {
     function checkCurrentMunicipality(currentLat, currentLng) {
         const point = turf.point([currentLng, currentLat]);
         let found = false;
-
         for (const feature of geoJSONData.features) {
             if (turf.booleanPointInPolygon(point, feature.geometry)) {
-                const name = getTargetName(feature); 
-                grantStamp(name, feature);
+                grantStamp(getTargetName(feature), feature);
                 found = true;
                 break; 
             }
@@ -245,6 +197,9 @@ function initializeMap(config) {
         if (!found && statusBox) statusBox.textContent = "エリア外、または該当する場所がありません。";
     }
 
+    // =======================================================
+    // 4. スタンプ付与（クールダウン新ロジック反映）
+    // =======================================================
     function grantStamp(name, feature) {
         const currentTime = Date.now();
         let progress = stampProgress[name] || { level: 0, lastCheckIn: 0 };
@@ -254,12 +209,12 @@ function initializeMap(config) {
             return;
         }
 
-        // --- クールダウン判定の修正箇所 ---
+        // --- クールダウン判定（1分 / 10分） ---
         let requiredCooldown = 0;
         if (progress.level === 1) {
-            requiredCooldown = 1 * 60 * 1000; // レベル1から2の間：1分
+            requiredCooldown = 1 * 60 * 1000; // Lv1→2は1分
         } else if (progress.level === 2) {
-            requiredCooldown = 10 * 60 * 1000; // レベル2から3の間：10分
+            requiredCooldown = 10 * 60 * 1000; // Lv2→3は10分
         }
 
         const timeElapsed = currentTime - progress.lastCheckIn;
@@ -269,19 +224,16 @@ function initializeMap(config) {
             const mins = Math.floor(totalSecondsLeft / 60);
             const secs = totalSecondsLeft % 60;
             const timeStr = mins > 0 ? `${mins}分${secs}秒` : `${secs}秒`;
-
             if (statusBox) statusBox.textContent = `クールダウン中...あと ${timeStr}`;
             return;
         }
-        // ------------------------------
 
         progress.level += 1;
         progress.lastCheckIn = currentTime;
         stampProgress[name] = progress;
         saveProgress();
 
-        svg.select("#mun-" + name)
-            .transition().duration(500)
+        svg.select("#mun-" + name).transition().duration(500)
             .attr("fill", LEVEL_COLORS[progress.level])
             .attr("stroke", "#f5d56cff")
             .attr("stroke-width", progress.level === MAX_STAMPS ? 3 : 2);
@@ -295,7 +247,8 @@ function initializeMap(config) {
         let stampElement = d3.select("#" + stampId);
         const centroid = path.centroid(feature); 
         
-        const currentSize = 60 + (level - 1) * 20; 
+        // ★修正：動的なサイズ設定を使用
+        const currentSize = baseSize + (level - 1) * incSize; 
         
         let imagePath = null;
         try {
@@ -321,7 +274,6 @@ function initializeMap(config) {
                 .attr("opacity", 0)
                 .style("cursor", "pointer")
                 .on("click", () => showStampModal(name, imagePath, level));
-
             const target = useTransition ? stampElement.transition().duration(500) : stampElement;
             target.attr("opacity", 1);
         } else {
@@ -340,11 +292,9 @@ function initializeMap(config) {
     // =======================================================
     // 5. モーダル表示ロジック
     // =======================================================
-
     function showStampModal(name, imgSrc, level) {
         const modal = document.getElementById("img-modal");
         if (!modal) return;
-
         document.getElementById("modal-city-name").textContent = name;
         document.getElementById("modal-img").src = imgSrc;
         document.getElementById("modal-desc").textContent = `${name}のスタンプ (レベル ${level}) です。現地を訪れて獲得しました！`;
@@ -354,24 +304,12 @@ function initializeMap(config) {
     function setupModalEvents() {
         const modal = document.getElementById("img-modal");
         const closeBtn = document.getElementById("modal-close");
-
-        if (closeBtn) {
-            closeBtn.addEventListener("click", () => {
-                modal.style.display = "none";
-            });
-        }
-
-        window.addEventListener("click", (event) => {
-            if (event.target === modal) {
-                modal.style.display = "none";
-            }
-        });
+        if (closeBtn) closeBtn.addEventListener("click", () => modal.style.display = "none");
+        window.addEventListener("click", (e) => { if (e.target === modal) modal.style.display = "none"; });
     }
 
     function handleAutoCheck() {
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('autocheck') === 'true') {
-            setTimeout(() => { getCurrentLocation(); }, 1000);
-        }
+        if (urlParams.get('autocheck') === 'true') setTimeout(() => getCurrentLocation(), 1000);
     }
 }

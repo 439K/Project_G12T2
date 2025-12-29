@@ -5,6 +5,10 @@ const tochigiConfig = {
         scale: 48000,
         center: [139.79, 36.68]
     },
+    stampSizeConfig: {
+        base: 60,      // レベル1の時の基本サイズ
+        increment: 20  // レベルが1上がるごとの増加量
+    },
     municipalityPathMap: {
         "宇都宮市": "utsunomiya-shi", "足利市": "ashikaga-shi", "栃木市": "tochigi-shi", "佐野市": "sano-shi",
         "鹿沼市": "kanuma-shi", "日光市": "nikko-shi", "小山市": "oyama-shi", "真岡市": "moka-shi",
