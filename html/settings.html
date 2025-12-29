@@ -16,9 +16,9 @@
                 <div class="profile-ticker">
                     <!-- ▼▼▼ IDを追加し、初期テキストを変更 ▼▼▼ -->
                     <span id="username-display" class="ticker-item active">読み込み中...</span>
-                    <span class="ticker-item">現在地: 埼玉県</span>
-                    <span class="ticker-item">埼玉の収集率: 5 / 12</span>
-                    <span class="ticker-item">全国の収集率: 123 / 1890</span>
+                    <span id="header-location" class="ticker-item">現在地を取得中</span>
+                    <span id="header-local-rate" class="ticker-item">現在地の収集率計算中</span>
+                    <span id="header-national-rate" class="ticker-item">全国の収集率計算中</span>
                 </div>
             </div>
             <!-- ▼▼▼ IDを追加 ▼▼▼ -->
@@ -30,13 +30,13 @@
         <main class="main-content settings-page">
             <div class="settings-group">
                 <h3>プロフィール</h3>
-                <div class="settings-item">
+                <a href="../html/profile.html" class="settings-item" style="text-decoration: none; color: inherit;">
                     <div class="item-content">
                         <i class="fas fa-user-edit fa-fw"></i>
-                        <a href="../html/profile.html"><span>プロフィールを編集</span></a>
+                        <span>プロフィールを編集</span>
                     </div>
                     <i class="fas fa-chevron-right"></i>
-                </div>
+                </a>
             </div>
             
 
@@ -56,20 +56,20 @@
 
             <div class="settings-group">
                 <h3>アカウント</h3>
-                <div class="settings-item">
+                <a href="../html/email.html" class="settings-item" style="text-decoration: none; color: inherit;">
                     <div class="item-content">
                         <i class="fas fa-envelope fa-fw"></i>
-                        <a href="../html/email.html"><span>メールアドレスを変更</span></a>
+                        <span>メールアドレスを変更</span>
                     </div>
                     <i class="fas fa-chevron-right"></i>
-                </div>
-                <div class="settings-item">
+                </a>
+                <a href="../html/password.html" class="settings-item" style="text-decoration: none; color: inherit;">
                     <div class="item-content">
                         <i class="fas fa-key fa-fw"></i>
-                        <a href="../html/password.html"><span>パスワードを変更</span></a>
+                        <span>パスワードを変更</span>
                     </div>
                     <i class="fas fa-chevron-right"></i>
-                </div>
+                </a>
                 <div id="logout-icon" class="settings-item">
                     <div class="item-content">
                         <i class="fas fa-sign-out-alt fa-fw"></i>
@@ -79,13 +79,13 @@
             </div>
 
              <div class="settings-group">
-                <div class="settings-item danger">
+                <a href="../html/delete_account.html" class="settings-item danger" style="text-decoration: none;">
                     <div class="item-content">
                         <i class="fas fa-trash-alt fa-fw"></i>
-                        <a href="../html/delete_account.html"><span>アカウントを削除</span></a>
+                        <span>アカウントを削除</span>
                     </div>
                     <i class="fas fa-chevron-right"></i>
-                </div>
+                </a>
             </div>
         </main>
 
@@ -99,6 +99,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="../src/js/firebase-config.js"></script> 
     <script>
       firebase.initializeApp(firebaseConfig);
