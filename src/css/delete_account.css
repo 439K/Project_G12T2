@@ -1,0 +1,175 @@
+/* delete_account.css */
+
+/* メインコンテンツの調整 */
+.settings-page {
+    padding: 20px 15px;
+    min-height: calc(100vh - 120px);
+}
+
+.settings-group {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 20px auto;
+    max-width: 600px;
+    width: 90%;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.settings-group h3 {
+    margin: 0 0 20px 0;
+    font-size: 16px;
+    font-weight: 600;
+    border-left: 4px solid #d9534f; /* 赤色に変更 */
+    padding-left: 10px;
+    color: #5c4b51;
+    letter-spacing: 0.05em;
+    border-bottom: none;
+    text-align: left;
+}
+
+.delete-account-container {
+    padding: 0;
+}
+
+.warning-box {
+    background-color: #fff5f5;
+    border: 1px solid #feb2b2;
+    color: #c53030;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 25px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.warning-box i {
+    font-size: 1.2rem;
+    margin-top: 2px;
+}
+
+.warning-box p {
+    margin: 0;
+    line-height: 1.5;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #5c4b51;
+    font-size: 0.95rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e6e0d8;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #4a403a;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    background-color: #fcfbf9;
+    font-family: inherit;
+    line-height: 1.5;
+}
+
+.form-group input:focus {
+    border-color: #d9534f; /* 赤色に変更 */
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgba(217, 83, 79, 0.15);
+    outline: none;
+}
+
+.btn-delete {
+    width: 100%;
+    padding: 14px 20px;
+    background: #d9534f; /* 赤色 */
+    color: white;
+    border: none;
+    border-radius: 30px;
+    font-size: 16px;
+    font-weight: bold;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+    box-shadow: 0 4px 10px rgba(217, 83, 79, 0.3);
+    margin-top: 10px;
+}
+
+.btn-delete:hover {
+    background: #c9302c;
+    transform: translateY(-2px);
+}
+
+.btn-delete:active {
+    transform: translateY(0);
+}
+
+.btn-delete:disabled {
+    background-color: #ccc;
+    box-shadow: none;
+    cursor: not-allowed;
+    transform: none;
+}
+
+#message-area {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    text-align: center;
+    line-height: 1.5;
+    display: none;
+}
+
+#message-area:not(:empty) {
+    display: block;
+}
+
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.user-info-confirm {
+    background-color: #fcfbf9;
+    border: 1px solid #e6e0d8;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.user-info-confirm p {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-weight: bold;
+    color: #5c4b51;
+    font-size: 0.95rem;
+}
+
+.info-item {
+    margin-bottom: 5px;
+    font-size: 0.95rem;
+    color: #4a403a;
+}
+
+.info-item .label {
+    color: #8b7e74;
+    margin-right: 10px;
+    font-weight: normal;
+}
+
+.info-item .value {
+    font-weight: bold;
+}
