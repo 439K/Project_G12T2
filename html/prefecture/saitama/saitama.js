@@ -28,7 +28,6 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // 市区町村名と画像フォルダ名のマッピング (埼玉版)
-    // ※ フォルダ名は便宜上ローマ字にしていますが、実際の構成に合わせて変更してください。
     const MUNICIPALITY_PATH_MAP = {
         "さいたま市": "saitama-shi",
         "川越市": "kawagoe-shi",
@@ -70,7 +69,6 @@ document.addEventListener('DOMContentLoaded', function() {
         "吉川市": "yoshikawa-shi",
         "ふじみ野市": "fujimino-shi",
         "白岡市": "shiraoka-shi"
-        // 町村が必要な場合はここに追加
     };
 
     function getStampImagePath(municipalityName, level) {
@@ -86,7 +84,6 @@ document.addEventListener('DOMContentLoaded', function() {
     async function saveProgress() {
         if (!currentUser) return;
         try {
-            // doc名を 'saitama' に変更
             await db.collection('users').doc(currentUser.uid).collection('progress').doc('saitama').set({ stamps: stampProgress });
         } catch (error) {
             console.error("データの保存に失敗:", error);
@@ -146,7 +143,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // 3. D3.jsの初期化と描画
     // =======================================================
 
-    // プロジェクション設定 (Saitama座標)
     const projection = d3.geoMercator()
         .scale(42000) 
         .center([139.30, 36.01]) 
@@ -161,7 +157,6 @@ document.addEventListener('DOMContentLoaded', function() {
         .style("width", "100%")
         .style("height", "100%");
 
-    // GeoJSONデータの読み込み
     d3.json("saitama.geojson", function(error, geojson) {
         if (error) {
             console.error("地図データの読み込みエラー:", error);
@@ -185,6 +180,9 @@ document.addEventListener('DOMContentLoaded', function() {
         stampGroup = svg.append("g").attr("class", "stamp-group");
 
         loadProgress();
+
+        // オートチェック機能の実行（地図データ読み込み完了後）
+        handleAutoCheck();
     });
 
     if (checkBtn) {
@@ -322,6 +320,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 .attr("y", centroid[1] - currentSize / 2)
                 .attr("width", currentSize)
                 .attr("height", currentSize);
+        }
+    }
+
+    // =======================================================
+    // 5. コンフリクト解消：オートチェック機能
+    // =======================================================
+    function handleAutoCheck() {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('autocheck') === 'true') {
+            setTimeout(() => {
+                if (typeof getCurrentLocation === 'function') {
+                    getCurrentLocation();
+                }
+            }, 500);
         }
     }
 });

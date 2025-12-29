@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../src/css/style.css">
     <link rel="stylesheet" href="../src/css/47.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
 </head>
 <body>
 
@@ -48,6 +49,15 @@
             <div id="back" class="back-btn" style="display:none;">← 地方一覧に戻る</div>
         </div>
 
+        <div class="action-buttons-container">
+            <a href="./map.html" class="action-btn">
+                <i class="fas fa-map"></i> 全体地図を見る
+            </a>
+            <button id="check-stamp-prefecture-btn" class="action-btn">
+                <i class="fas fa-map-marker-alt"></i> 現在地でスタンプをチェック
+            </button>
+        </div>
+
         <footer class="bottom-nav">
             <a href="./main.html" class="nav-button">
                 <i class="fa-solid fa-house"></i>
@@ -64,6 +74,11 @@
     </script>
     
     <script src="../src/js/header.js"></script>
+
+    <!-- ▼▼▼ 機能分割のためスクリプトを追加 ▼▼▼ -->
+    <script src="../src/js/prefecture-data.js"></script>
+    <script src="../src/js/stamp-check.js"></script>
+
     <script src="../src/js/47.js"></script>
 </body>
 </html>
