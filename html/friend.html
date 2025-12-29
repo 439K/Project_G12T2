@@ -11,76 +11,70 @@
 </head>
 <body>
     <div class="app-container">
-    <header class="top-nav">
+        <header class="top-nav">
             <div class="profile-zone">
                 <i class="fas fa-user"></i>
                 <div class="profile-ticker">
-                    <!-- ▼▼▼ IDを追加し、初期テキストを変更 ▼▼▼ -->
                     <span id="username-display" class="ticker-item active">読み込み中...</span>
                     <span class="ticker-item">現在地: 埼玉県</span>
                     <span class="ticker-item">埼玉の収集率: 5 / 12</span>
                     <span class="ticker-item">全国の収集率: 123 / 1890</span>
                 </div>
             </div>
-            <!-- ▼▼▼ IDを追加 ▼▼▼ -->
             <div class="settings-icon" id="settings-icon">
                 <a href="./settings.html"><i class="fas fa-cog"></i></a>
             </div>
         </header>
 
-    <main class="main-content">
-    <!-- 1. フレンドリスト画面 (メインコンテナ) -->
-    <div id="friend-list-container">
-        <h2>フレンドリスト</h2>
+        <main class="main-content">
+            <div id="friend-list-container">
+                
+                <div class="list-header-row">
+                    <h2>フレンドリスト</h2>
+                    <button id="ranking-button" class="btn-ranking-header">
+                        <i class="fa-solid fa-trophy"></i> ランキング
+                    </button>
+                </div>
 
-        <!-- フレンドリクエスト通知エリア (jsのIDと合わせる: request-notification-area) -->
-        <div id="request-notification-area">
-            <p style="margin: 0; font-weight: bold; color: #1565c0; font-size: 0.95em;">
-                <i class="fa-solid fa-bell"></i> フレンド申請が届いています
-            </p>
-            <!-- jsのIDと合わせる: request-list-mini -->
-            <ul id="request-list-mini"></ul>
-        </div>
+                <div id="request-notification-area">
+                    <p style="margin: 0; font-weight: bold; color: #1565c0; font-size: 0.95em;">
+                        <i class="fa-solid fa-bell"></i> フレンド申請が届いています
+                    </p>
+                    <ul id="request-list-mini"></ul>
+                </div>
 
-        <!-- 検索ボックス -->
-        <div class="search-box">
-            <input type="text" id="search-input" placeholder="ID または 名前で検索...">
-            <button id="search-button">検索</button>
-            <button id="ranking-button" style="background-color: #d4af37;">🏆 ランキング</button>
-        </div>
+                <div class="search-box">
+                    <input type="text" id="search-input" placeholder="ID または 名前で検索...">
+                    <button id="search-button">検索</button>
+                    </div>
 
-        <!-- フレンドリスト (jsのIDと合わせる: friend-list) -->
-        <ul id="friend-list">
-            <li class="loading">読み込み中...</li>
-        </ul>
-    </div>
+                <ul id="friend-list">
+                    <li class="loading">読み込み中...</li>
+                </ul>
+            </div>
 
-    <!-- 2. ランキング画面 (初期非表示) -->
-    <div id="ranking-container" style="display: none;">
-        <h2>シール獲得ランキング 👑</h2>
-        <button id="back-to-list-button">← リストに戻る</button>
-        <ul id="ranking-list">
-            <!-- JSでランキング生成 -->
-        </ul>
-    </div>
+            <div id="ranking-container" style="display: none;">
+                <div class="list-header-row">
+                    <h2>シール獲得ランキング 👑</h2>
+                </div>
+                <button id="back-to-list-button">← リストに戻る</button>
+                <ul id="ranking-list">
+                    </ul>
+            </div>
 
-    <!-- 3. プロフィール詳細画面 (初期非表示) -->
-    <div id="profile-container" style="display: none;">
-        <button id="back-button">← リストに戻る</button>
-        
-        <div id="profile-details">
-            <!-- JSでプロフィール挿入 -->
-        </div>
+            <div id="profile-container" style="display: none;">
+                <button id="back-button">← リストに戻る</button>
+                
+                <div id="profile-details">
+                    </div>
 
-        <h3>集めたシール</h3>
-        <div id="stamp-collection">
-            <!-- JSでスタンプ画像挿入 -->
-        </div>
-    </div>
-    </main>
+                <h3>集めたシール</h3>
+                <div id="stamp-collection">
+                    </div>
+            </div>
+        </main>
 
-    <!-- フッター -->
-    <footer class="bottom-nav">
+        <footer class="bottom-nav">
             <a href="./main.html" class="nav-button">
                 <i class="fa-solid fa-house"></i>
                 <span>Home</span>
@@ -88,18 +82,13 @@
         </footer>
     </div>
     
-    <!-- 1. 設定ファイルを読み込む -->
     <script src="../src/js/firebase-config.js"></script> 
-    <!-- 2. header.js 用の Firebase Compat ライブラリと初期化 -->
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
     <script>
         firebase.initializeApp(firebaseConfig);
     </script>
-    <!-- 3. 共通ヘッダーロジック -->
     <script src="../src/js/header.js"></script>
-    <!-- ロジック読み込み -->
     <script type="module" src="../src/js/friend.js"></script>
-
 </body>
 </html>

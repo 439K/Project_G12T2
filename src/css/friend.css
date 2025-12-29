@@ -1,23 +1,62 @@
 /* 基本のレイアウト */
-/* body スタイルは style.css に任せるため削除 */
-
-/* style.css の .main-content (中央寄せ) を上書きして左上基準にする */
 .main-content {
-    display: block !important; /* flexによる中央寄せを解除 */
+    display: block !important;
     padding: 20px;
     width: 100%;
-    /* PCなどで横に広がりすぎるのを防ぐ場合は max-width: 800px; margin: 0 auto; などを追加してください */
 }
 
-/* 見出し（フレンドリスト、ランキングなど）の視認性向上 */
+/* ★ 見出しとボタンを横並びにするコンテナ */
+.list-header-row {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    background-color: rgba(245, 245, 245, 0.9);
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.list-header-row h2 {
+    margin: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+    padding: 0;
+    font-size: 1.2rem;
+    color: #222;
+}
+
+/* 従来のh2スタイル */
 h2 {
-    background-color: rgba(245, 245, 245, 0.9); /* 薄いグレー背景(半透明) */
-    border: 2px solid #ccc; /* グレーの枠線 */
-    color: #222; /* 黒字 */
+    background-color: rgba(245, 245, 245, 0.9);
+    border: 2px solid #ccc;
+    color: #222;
     padding: 12px 15px;
     border-radius: 8px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); /* 軽い影 */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* ★ ヘッダー内のランキングボタン */
+.btn-ranking-header {
+    background-color: #d4af37; /* ゴールド */
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: transform 0.2s, opacity 0.2s;
+    white-space: nowrap;
+}
+
+.btn-ranking-header:hover {
+    transform: translateY(-2px);
+    opacity: 0.9;
 }
 
 /* ======== 1. フレンドリスト ======== */
@@ -30,27 +69,29 @@ h2 {
 #friend-list li {
     display: flex;
     align-items: center;
-    justify-content: space-between; /* 左右に配置 */
+    justify-content: space-between;
     padding: 15px;
     margin-bottom: 12px;
     background-color: #ffffff;
     border: 1px solid #f0f0f0;
     border-radius: 12px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* 軽い影 */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     cursor: pointer;
-    transition: transform 0.2s, box-shadow 0.2s; /* アニメーション */
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 #friend-list li:hover {
-    transform: translateY(-2px); /* 少し浮き上がる */
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1); /* 影を濃く */
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 
-/* ユーザー情報エリア */
+/* ユーザー情報エリア (外枠) */
 .user-info {
     display: flex;
     align-items: center;
     flex-grow: 1;
+    overflow: hidden; 
+    margin-right: 10px;
 }
 
 .user-info img.user-icon {
@@ -60,164 +101,74 @@ h2 {
     margin-right: 15px;
     object-fit: cover;
     border: 2px solid #eee;
+    flex-shrink: 0;
 }
 
-.user-info strong {
+/* 名前と自己紹介を縦に並べるためのコンテナ */
+.user-details-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden; 
+    flex: 1; 
+}
+
+/* 上段: 名前とID */
+.user-top-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 2px;
+}
+
+.user-name {
     font-size: 1.1rem;
     color: #333;
-}
-.user-uid {
-    color: #888;
-    font-size: 0.85rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
-/* ======== 2. プロフィール画面 ======== */
-#profile-details {
+.user-uid {
+    color: #999;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+/* 下段: 自己紹介とスタンプ数 */
+.user-bottom-row {
     display: flex;
     align-items: center;
-    margin-top: 20px;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    gap: 10px;
+    font-size: 0.85rem;
+    color: #666;
 }
 
-#profile-details img {
-    width: 90px;
-    height: 90px;
-    border-radius: 50%;
-    margin-right: 25px;
-    border: 3px solid #f0f0f0;
+/* 自己紹介文 */
+.user-bio {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 250px;
+    color: #777;
 }
 
-/* (前のコード ... body, #friend-list などはそのまま) */
-
-/* ======== 2. プロフィール画面 (一部変更) ======== */
-#stamp-collection img {
-    width: 100%;
-    height: auto;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    cursor: pointer; /* ★追加：クリックできることを示す */
-    transition: opacity 0.2s;
-}
-
-#stamp-collection img:hover {
-    opacity: 0.8; /* ★追加：マウスを乗せたら少し薄くする */
-}
-
-.profile-message {
-    font-size: 14px;
-    color: #555;
-    background-color: #f9f9f9;
-    border-radius: 8px;
-    padding: 12px;
-    margin-top: 10px;
-    display: inline-block;
-}
-
-
-/* ======== 3. スタンプ詳細モーダル（★ここから全部追加） ======== */
-#stamp-modal-overlay {
-    /* 画面全体を覆う黒い半透明の背景 */
-    position: fixed; /* 画面に固定 */
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.7); /* 少し暗くする */
-
-    /* 中身を中央揃えにするための設定 */
-    display: flex; /* ★注意：JSで 'none' から 'flex' に変えます */
-    align-items: center;
-    justify-content: center;
-    z-index: 100; /* 他の要素より手前に表示 */
-}
-
-#stamp-modal-content {
-    /* 白いポップアップの箱 */
-    background-color: #fff;
-    padding: 30px;
+/* シール数バッジ */
+.user-stamp-badge {
+    background-color: #fff3e0;
+    color: #d84315;
+    padding: 2px 8px;
     border-radius: 10px;
-    width: 80%;
-    max-width: 400px; /* PCでも大きくなりすぎないように */
-    text-align: center;
-    position: relative; /* 閉じるボタンの基準位置にする */
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    font-weight: bold;
+    font-size: 0.8rem;
+    white-space: nowrap;
 }
 
-#modal-close-button {
-    /* 閉じるボタン (×) */
-    position: absolute;
-    top: 10px;
-    right: 15px;
-    font-size: 28px;
-    line-height: 1;
-    color: #888;
-    cursor: pointer;
-}
-#modal-close-button:hover {
-    color: #000;
-}
-
-#modal-stamp-image {
-    width: 70%;
-    max-width: 200px;
-    height: auto;
-    margin-bottom: 15px;
-    border-bottom: 2px solid #eee;
-    padding-bottom: 15px;
-}
-
-/* スタンプコレクションの見た目 */
-#stamp-collection {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); /* スタンプをいい感じに並べる */
-    gap: 15px;
-    margin-top: 20px;
-}
-
-#stamp-collection img {
-    width: 100%;
-    height: auto;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-/* 戻るボタン */
-#back-button {
-    padding: 8px 16px;
-    font-size: 14px;
-    cursor: pointer;
-    background-color: #f5f5f5;
-    border: none;
-    border-radius: 20px;
-    color: #555;
-    transition: background-color 0.2s;
-}
-#back-button:hover {
-    background-color: #e0e0e0;
-}
-
-.bottom-nav {
-    position: fixed;     /* ← 重要！画面下に固定する */
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: rgba(255, 255, 255, 0.8);
-    padding: 10px 0;
-    text-align: center;
-    z-index: 1000;        /* 最前面に出す */
-}
-
-/* friend.css の一番下に追加 */
-
-/* ======== 検索ボックスのスタイル ======== */
+/* ======== 検索ボックス ======== */
 .search-box {
     display: flex;
-    gap: 10px; /* 入力欄とボタンの間隔 */
-    margin-bottom: 20px; /* リストとの間隔 */
+    gap: 10px;
+    margin-bottom: 20px;
     background: #fff;
     padding: 15px;
     border-radius: 12px;
@@ -225,7 +176,7 @@ h2 {
 }
 
 #search-input {
-    flex: 1; /* 横幅いっぱいに広げる */
+    flex: 1;
     padding: 12px;
     border: 1px solid #ddd;
     border-radius: 8px;
@@ -244,29 +195,14 @@ h2 {
 }
 
 #search-button:hover {
-    background-color: #a0522d; /* ホバー時に少し明るく */
+    background-color: #a0522d;
 }
 
-/* ======== ランキング画面のスタイル ======== */
-#ranking-button {
-    padding: 0 15px;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-#ranking-button:hover {
-    opacity: 0.8;
-}
-
-/* ランキングリストの見た目 */
+/* ======== ランキング画面 ======== */
 #ranking-list {
     list-style: none;
     padding: 0;
-    margin-top: 20px;
+    margin-top: 10px;
 }
 
 #ranking-list li {
@@ -287,32 +223,39 @@ h2 {
     margin-right: 15px;
     width: 40px;
     text-align: center;
-    font-family: 'Times New Roman', serif; /* ちょっと豪華なフォントに */
+    font-family: 'Times New Roman', serif;
 }
 
-/* 1位〜3位の特別カラー */
-.rank-1 .rank-number { color: #d4af37; text-shadow: 1px 1px 0 #000; } /* 金 */
-.rank-2 .rank-number { color: #c0c0c0; text-shadow: 1px 1px 0 #000; } /* 銀 */
-.rank-3 .rank-number { color: #cd7f32; text-shadow: 1px 1px 0 #000; } /* 銅 */
+.rank-1 .rank-number { color: #d4af37; text-shadow: 1px 1px 0 #000; }
+.rank-2 .rank-number { color: #c0c0c0; text-shadow: 1px 1px 0 #000; }
+.rank-3 .rank-number { color: #cd7f32; text-shadow: 1px 1px 0 #000; }
 
 .rank-count {
-    margin-left: auto; /* 右端に寄せる */
+    margin-left: auto;
     font-weight: bold;
     color: #555;
 }
 
 /* ランキング画面の戻るボタン */
 #back-to-list-button {
+    display: block;
+    width: fit-content;
     padding: 8px 16px;
     background-color: #f5f5f5;
     border: none;
     border-radius: 20px;
     cursor: pointer;
-    margin-bottom: 15px;
+    margin: 0 0 15px 15px;
     color: #555;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+#back-to-list-button:hover {
+    background-color: #e0e0e0;
 }
 
-/* ======== ボタンの共通スタイル ======== */
+/* ======== ボタン共通 ======== */
 .action-area button {
     padding: 8px 16px;
     border: none;
@@ -322,41 +265,256 @@ h2 {
     cursor: pointer;
     transition: background-color 0.2s;
     margin-left: 5px;
+    white-space: nowrap;
 }
 
-/* 解除ボタン */
-.btn-remove {
-    background-color: #ffebee; /* 薄い赤 */
-    color: #c62828;
-}
-.btn-remove:hover {
-    background-color: #ffcdd2;
-}
+.btn-remove { background-color: #ffebee; color: #c62828; }
+.btn-remove:hover { background-color: #ffcdd2; }
 
-/* 申請ボタン */
-.btn-add {
-    background-color: #e3f2fd; /* 薄い青 */
-    color: #1565c0;
-}
-.btn-add:hover {
-    background-color: #bbdefb;
-}
+.btn-add { background-color: #e3f2fd; color: #1565c0; }
+.btn-add:hover { background-color: #bbdefb; }
 
-/* 承認ボタン */
-.btn-accept {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-}
-.btn-accept:hover {
-    background-color: #c8e6c9;
-}
+.btn-accept { background-color: #e8f5e9; color: #2e7d32; }
+.btn-accept:hover { background-color: #c8e6c9; }
 
-/* リクエスト通知エリア */
 #request-notification-area {
     background-color: #e3f2fd;
     border: 1px solid #90caf9;
     border-radius: 8px;
     padding: 15px;
     margin-bottom: 20px;
-    display: none; /* 初期状態は非表示（JSでデータがある場合のみ表示） */
+    display: none;
+}
+
+/* モーダル */
+#stamp-modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+#stamp-modal-content {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    width: 80%;
+    max-width: 400px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+#modal-close-button {
+    position: absolute;
+    top: 10px; right: 15px;
+    font-size: 28px;
+    line-height: 1;
+    color: #888;
+    cursor: pointer;
+}
+#modal-stamp-image {
+    width: 70%;
+    max-width: 200px;
+    height: auto;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 15px;
+}
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(255, 255, 255, 0.8);
+    padding: 10px 0;
+    text-align: center;
+    z-index: 1000;
+}
+
+/* ======== フレンドプロフィール詳細 ======== */
+
+/* プロフィール画面のベース */
+#profile-container {
+    background-color: #f9f7f2;
+    min-height: 80vh;
+    width: 100%;
+    padding-bottom: 50px;
+}
+
+/* --- ヘッダー画像エリア --- */
+.friend-profile-header {
+    position: relative;
+    background-color: #dcd6d0;
+    height: 200px;
+    width: 100% !important; 
+    margin-bottom: 60px;
+}
+.friend-cover-image {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important; 
+    display: block !important;
+    border-radius: 0 !important; 
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+}
+
+/* --- アバター画像エリア --- */
+.friend-avatar-container {
+    position: absolute;
+    bottom: -50px; /* ヘッダーの下にはみ出す設定 */
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    width: 100px;
+    height: 100px;
+    z-index: 10;
+    overflow: hidden; 
+}
+.friend-avatar-img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: contain !important; 
+    background-color: #fff;
+    display: block;
+}
+
+/* カード共通 */
+.friend-card {
+    margin: 20px auto;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    padding: 20px;
+    max-width: 600px;
+    width: 90%;
+    box-sizing: border-box;
+    position: relative;
+    z-index: 5;
+    display: block; 
+}
+.friend-card h3 {
+    margin: 0 0 15px 0;
+    font-size: 16px;
+    font-weight: 600;
+    border-left: 4px solid #cbb79f;
+    padding-left: 10px;
+    color: #5c4b51;
+    letter-spacing: 0.05em;
+}
+
+/* ユーザー名 */
+.friend-name-area {
+    text-align: center;
+    margin-top: 60px;
+}
+.friend-name-text {
+    font-size: 24px;
+    font-weight: 600;
+    color: #4a403a;
+    margin: 0 0 5px 0;
+}
+.friend-id-text {
+    font-size: 0.85rem;
+    color: #999;
+    font-family: monospace;
+}
+
+/* 自己紹介 */
+.friend-bio-text {
+    font-size: 15px;
+    color: #555;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    text-align: left;
+}
+
+/* 統計 */
+.friend-stats {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+    width: 100%;
+    padding-top: 5px;
+}
+.friend-stat-item {
+    flex: 1;
+    position: relative;
+}
+.friend-stat-item:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    top: 10%;
+    height: 80%;
+    width: 1px;
+    background-color: #eee;
+}
+.friend-stat-value {
+    font-size: 22px;
+    font-weight: bold;
+    color: #5c4b51;
+}
+.friend-stat-label {
+    font-size: 11px;
+    color: #8b7e74;
+    margin-top: 4px;
+}
+
+/* スタンプコレクション */
+.friend-stamps-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    gap: 10px;
+}
+.friend-stamp-item {
+    aspect-ratio: 1;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+    cursor: pointer;
+}
+.friend-stamp-item:hover {
+    transform: scale(1.05);
+    border-color: #cbb79f;
+}
+.friend-stamp-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* 戻るボタン */
+#back-button {
+    position: fixed;
+    top: 85px; 
+    left: 15px;
+    z-index: 100;
+    background-color: rgba(255,255,255,0.8);
+    color: #5c4b51;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 16px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    font-weight: bold;
+    font-size: 14px;
+}
+#back-button:hover {
+    background-color: #fff;
 }
