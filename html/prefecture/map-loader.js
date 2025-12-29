@@ -1,7 +1,7 @@
 /**
  * map-loader.js
  * 各都道府県のHTMLから呼び出される共通地図読み込みライブラリ
- * モーダル表示機能統合版
+ * モーダル表示・スタンプ大型化・キャッシュ機能統合版
  */
 function initializeMap(config) {
     // =======================================================
@@ -46,15 +46,27 @@ function initializeMap(config) {
     }
 
     // =======================================================
-    // 2. データの保存と復元
+    // 2. データの保存と復元（キャッシュ機能追加）
     // =======================================================
+
+    // キャッシュ用のキーを生成
+    function getCacheKey() {
+        return currentUser ? `stamp_cache_${prefectureId}_${currentUser.uid}` : null;
+    }
 
     async function saveProgress() {
         if (!currentUser) return;
         try {
+            // 1. Firebaseへ保存
             await db.collection('users').doc(currentUser.uid)
                     .collection('progress').doc(prefectureId)
                     .set({ stamps: stampProgress });
+
+            // 2. ローカルキャッシュへ保存
+            const key = getCacheKey();
+            if (key) {
+                localStorage.setItem(key, JSON.stringify(stampProgress));
+            }
         } catch (error) {
             console.error("データの保存に失敗:", error);
         }
@@ -62,17 +74,47 @@ function initializeMap(config) {
 
     async function loadProgress() {
         if (!currentUser || !geoJSONData) return;
+
+        const key = getCacheKey();
+
+        // 1. まずはキャッシュから読み込んで即座に表示
+        if (key) {
+            const cachedData = localStorage.getItem(key);
+            if (cachedData) {
+                try {
+                    stampProgress = JSON.parse(cachedData);
+                    restoreMapState();
+                    console.log("キャッシュからデータを復元しました");
+                } catch (e) {
+                    console.error("キャッシュデータの解析に失敗:", e);
+                }
+            }
+        }
+
+        // 2. 次にFirebaseから最新データを取得（バックグラウンド更新）
         try {
             const doc = await db.collection('users').doc(currentUser.uid)
                             .collection('progress').doc(prefectureId).get();
+            
             if (doc.exists) {
-                stampProgress = doc.data().stamps || {};
-                restoreMapState();
-            } else {
+                const cloudData = doc.data().stamps || {};
+                
+                // キャッシュとデータが異なる場合のみ再描画
+                if (JSON.stringify(stampProgress) !== JSON.stringify(cloudData)) {
+                    stampProgress = cloudData;
+                    if (key) {
+                        localStorage.setItem(key, JSON.stringify(stampProgress));
+                    }
+                    restoreMapState();
+                    console.log("Firebaseの最新データと同期しました");
+                }
+            } else if (!localStorage.getItem(key)) {
+                // クラウドにもキャッシュにもデータがない場合のみリセット
                 resetMapAndProgress();
             }
         } catch (error) {
-            console.error("データの読み込みに失敗:", error);
+            console.error("Firebaseからの読み込みに失敗（オフラインの可能性があります）:", error);
+            // 失敗してもキャッシュが表示されているので、ユーザーへの通知は不要
         }
     }
 
@@ -109,6 +151,8 @@ function initializeMap(config) {
                 .attr("stroke", "#333")
                 .attr("stroke-width", 0.5);
         }
+        const key = getCacheKey();
+        if (key) localStorage.removeItem(key);
     }
 
     // =======================================================
@@ -151,7 +195,7 @@ function initializeMap(config) {
 
         loadProgress();
         handleAutoCheck();
-        setupModalEvents(); // モーダルイベントの初期化
+        setupModalEvents(); 
     });
 
     if (checkBtn) {
@@ -234,12 +278,12 @@ function initializeMap(config) {
         if (statusBox) statusBox.textContent = `${name} のスタンプ (Lv.${progress.level}) を獲得！`;
     }
 
-    // ★ 修正点: 画像にクリックイベントを付与
     async function updateStampImage(name, feature, level, useTransition) {
         const stampId = "stamp-" + name;
         let stampElement = d3.select("#" + stampId);
         const centroid = path.centroid(feature); 
-        // const currentSize = 30 + (level - 1) * 10;
+        
+        // スタンプサイズの調整（大型化）
         const currentSize = 60 + (level - 1) * 20; 
         
         let imagePath = null;
@@ -259,8 +303,8 @@ function initializeMap(config) {
                 .attr("width", currentSize)
                 .attr("height", currentSize)
                 .attr("opacity", 0)
-                .style("cursor", "pointer") // 指アイコンにする
-                .on("click", () => showStampModal(name, imagePath, level)); // クリックでモーダル
+                .style("cursor", "pointer")
+                .on("click", () => showStampModal(name, imagePath, level));
 
             const target = useTransition ? stampElement.transition().duration(500) : stampElement;
             target.attr("opacity", 1);
@@ -272,14 +316,13 @@ function initializeMap(config) {
                 .attr("width", currentSize)
                 .attr("height", currentSize)
                 .on("end", function() {
-                    // transition終了後にクリックイベントを確実に紐付け
                     d3.select(this).on("click", () => showStampModal(name, imagePath, level));
                 });
         }
     }
 
     // =======================================================
-    // 5. モーダル表示ロジック (追加)
+    // 5. モーダル表示ロジック
     // =======================================================
 
     function showStampModal(name, imgSrc, level) {
