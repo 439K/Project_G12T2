@@ -248,11 +248,18 @@ function initializeMap(config) {
         let imagePath = null;
         // Firebase Storage 優先チェック (元々の map-loader.js の機能を維持)
         try {
-            const storageRefPath = `stamps/${prefectureId}/${name}_${level}.png`;
-            imagePath = await storage.ref(storageRefPath).getDownloadURL();
-        } catch (e) {
-            // Storageになければローカル
-            imagePath = getStampImagePath(name, level);
+            // 1. 市区町村固有のスタンプを探す
+            const municipalityPath = `stamps/${prefectureId}/${name}_${level}.png`;
+            imagePath = await storage.ref(municipalityPath).getDownloadURL();
+        } catch (e1) {
+            try {
+                // 2. なければ都道府県共通のスタンプを探す (例: stamps/tokyo/tokyo_1.png)
+                const prefecturePath = `stamps/${prefectureId}/${prefectureId}_${level}.png`;
+                imagePath = await storage.ref(prefecturePath).getDownloadURL();
+            } catch (e2) {
+                // 3. それもなければローカル
+                imagePath = getStampImagePath(name, level);
+            }
         }
 
         if (stampElement.empty()) {
