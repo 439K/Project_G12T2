@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>観光スタンプラリー</title>
+    <link rel="stylesheet" href="../src/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../src/css/email.css">
+</head>
+<body>
+    <div class="app-container">
+                <header class="top-nav">
+            <div class="profile-zone">
+                <i class="fas fa-user"></i>
+                <div class="profile-ticker">
+                    <!-- ▼▼▼ IDを追加し、初期テキストを変更 ▼▼▼ -->
+                    <span id="username-display" class="ticker-item active">読み込み中...</span>
+                    <span id="header-location" class="ticker-item">現在地を取得中</span>
+                    <span id="header-local-rate" class="ticker-item">現在地の収集率計算中</span>
+                    <span id="header-national-rate" class="ticker-item">全国の収集率計算中</span>
+                </div>
+            </div>
+            <!-- ▼▼▼ IDを追加 ▼▼▼ -->
+            <div class="settings-icon">
+                <a href="./settings.html"><i class="fas fa-cog"></i></a>
+            </div>
+        </header>
+
+        <main class="main-content settings-page">
+            <div class="settings-group">
+                <h3>メールアドレス変更</h3>
+                <div class="email-update-container">
+                    <p class="current-email-info">現在のメールアドレス: <span id="current-email">読み込み中...</span></p>
+                    <form id="update-email-form">
+                        <div class="form-group">
+                            <label for="new-email">新しいメールアドレス</label>
+                            <input type="email" id="new-email" required placeholder="新しいメールアドレス">
+                        </div>
+                        <div class="form-group">
+                            <label for="current-password">パスワード（確認用）</label>
+                            <input type="password" id="current-password" required placeholder="現在のパスワード">
+                            <small class="note">※セキュリティのため、パスワードの入力が必要です。</small>
+                        </div>
+                        <button type="submit" class="btn-save">変更を保存</button>
+                    </form>
+                    <div id="message-area"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="bottom-nav">
+            <a href="./friend.html" class="nav-button">
+                <i class="fas fa-user-friends"></i>
+                <span>フレンド</span>
+            </a>
+            <a href="./main.html" class="nav-button">
+                <i class="fa-solid fa-house"></i>
+                <span>ホーム</span>
+            </a>
+            <a href="./collection.html" class="nav-button">
+                <i class="fas fa-book-bookmark"></i>
+                <span>コレクション</span>
+            </a>
+        </footer>
+
+        <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+        <script src="../src/js/firebase-config.js"></script> 
+        <script>
+            firebase.initializeApp(firebaseConfig);
+        </script>
+    
+        <script src="../src/js/header.js"></script>
+        <script src="../src/js/email.js"></script>
+    </div>
+
+
+
+
+</body>
+</html>

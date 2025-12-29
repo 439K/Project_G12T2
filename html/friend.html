@@ -16,9 +16,9 @@
                 <i class="fas fa-user"></i>
                 <div class="profile-ticker">
                     <span id="username-display" class="ticker-item active">読み込み中...</span>
-                    <span class="ticker-item">現在地: 埼玉県</span>
-                    <span class="ticker-item">埼玉の収集率: 5 / 12</span>
-                    <span class="ticker-item">全国の収集率: 123 / 1890</span>
+                    <span id="header-location" class="ticker-item">現在地を取得中</span>
+                    <span id="header-local-rate" class="ticker-item">現在地の収集率計算中</span>
+                    <span id="header-national-rate" class="ticker-item">全国の収集率計算中</span>
                 </div>
             </div>
             <div class="settings-icon" id="settings-icon">
@@ -74,10 +74,14 @@
             </div>
         </main>
 
-        <footer class="bottom-nav">
+
             <a href="./main.html" class="nav-button">
                 <i class="fa-solid fa-house"></i>
-                <span>Home</span>
+                <span>ホーム</span>
+            </a>
+            <a href="./collection.html" class="nav-button">
+                <i class="fas fa-book-bookmark"></i>
+                <span>コレクション</span>
             </a>
         </footer>
     </div>
@@ -85,6 +89,7 @@
     <script src="../src/js/firebase-config.js"></script> 
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script>
         firebase.initializeApp(firebaseConfig);
     </script>

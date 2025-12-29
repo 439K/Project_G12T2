@@ -16,9 +16,9 @@
                 <i class="fas fa-user"></i>
                 <div class="profile-ticker">
                     <span id="username-display" class="ticker-item active">読み込み中...</span>
-                    <span class="ticker-item">現在地: 埼玉県</span>
-                    <span class="ticker-item">埼玉の収集率: 5 / 12</span>
-                    <span class="ticker-item">全国の収集率: 123 / 1890</span>
+                    <span id="header-location" class="ticker-item">現在地を取得中</span>
+                    <span id="header-local-rate" class="ticker-item">現在地の収集率計算中</span>
+                    <span id="header-national-rate" class="ticker-item">全国の収集率計算中</span>
                 </div>
             </div>
             <!-- ▼▼▼ IDを追加 ▼▼▼ -->
@@ -29,20 +29,26 @@
 
         <main class="main-content">
             <div class="book-container">
-                <!-- 変更点: 画像パスも修正 -->
                 <a href="./47.html"><img src="../src/images/book.png" alt="冒険の書" class="book-image"></a>
             </div>
         </main>
 
+        <!-- ▼▼▼ 現在地チェックボタンを main の外に移動 ▼▼▼ -->
+        <div class="action-buttons-container">
+            <button id="check-stamp-prefecture-btn" class="action-btn">
+                <i class="fas fa-map-marker-alt"></i> 現在地でスタンプをチェック
+            </button>
+        </div>
+
         <footer class="bottom-nav">
             <a href="./friend.html" class="nav-button">
                 <i class="fas fa-user-friends"></i>
-                <span>友達</span>
+                <span>フレンド</span>
             </a>
-            <a href="./map.html" class="nav-button">
-                <i class="fas fa-map-marker-alt"></i>
-                <span>現在地</span>
-            </a>
+            <p class="nav-button">
+                <i class=""></i>
+                <span></span>
+            </p>
             <a href="./collection.html" class="nav-button">
                 <i class="fas fa-book-bookmark"></i>
                 <span>コレクション</span>
@@ -52,11 +58,17 @@
 
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="../src/js/firebase-config.js"></script> 
     <script>
       firebase.initializeApp(firebaseConfig);
     </script>
     
     <script src="../src/js/header.js"></script>
+
+    <!-- ▼▼▼ ボタン機能のためにスクリプトを追加 ▼▼▼ -->
+    <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script>
+    <script src="../src/js/prefecture-data.js"></script>
+    <script src="../src/js/stamp-check.js"></script>
 </body>
 </html>

@@ -149,4 +149,16 @@ document.addEventListener('DOMContentLoaded', function() {
             statusBox.textContent = `「${municipalityName}」は既に獲得済みです！`;
         }
     }
+
+    // Auto-check logic
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('autocheck') === 'true') {
+        // A small delay might be needed to ensure the map/data is ready
+        setTimeout(() => {
+            // Check if getCurrentLocation function exists before calling
+            if (typeof getCurrentLocation === 'function') {
+                getCurrentLocation();
+            }
+        }, 500);
+    }
 });
