@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
         settingsIcon.addEventListener('click', () => {
             if (confirm('ログアウトしますか？')) {
                 auth.signOut().then(() => {
-                    window.location.href = './title.html';
+                    window.location.href = '../index.html';
                 }).catch((error) => {
                     console.error('ログアウトエラー', error);
                 });
