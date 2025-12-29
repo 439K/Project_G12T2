@@ -75,3 +75,28 @@
 .action-buttons-container {
     background-color: rgba(0, 0, 0, 0.25); /* 背景色を他のエリアと統一 */
 }
+
+/* ロックされたボックス共通 */
+.box.locked {
+    background-color: #cfcfcf !important;
+    color: #bbb !important;
+    cursor: not-allowed !important;
+    position: relative;
+    border: 1px dashed #ccc !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+/* 鍵アイコンを右上に配置 */
+.lock-icon {
+    position: absolute;
+    top: 5px;
+    right: 8px;
+    font-size: 0.8rem;
+    color: #aaa;
+}
+
+/* ロックされた中身のテキストを少し薄く */
+.box.locked .contents {
+    opacity: 0.6;
+}

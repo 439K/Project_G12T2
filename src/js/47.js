@@ -2,68 +2,88 @@ document.addEventListener('DOMContentLoaded', () => {
     const container = document.getElementById("container");
     const backBtn = document.getElementById("back");
 
-    // 初期HTMLを保存
-    // Note: DOMContentLoadedの外で実行すると、要素が見つからない可能性があるため中に入れる
+    // 初期状態の地方ボタンにロックをかける
+    const applyRegionLocks = () => {
+        container.querySelectorAll(".box").forEach(box => {
+            const area = box.dataset.area;
+            // 関東(kanto)と中部(chubu)以外はロック
+            if (area && area !== "kanto" && area !== "chubu") {
+                box.classList.add("locked");
+                // 鍵アイコンを中に追加（任意）
+                if (!box.querySelector('.fa-lock')) {
+                    box.insertAdjacentHTML('beforeend', '<i class="fas fa-lock lock-icon"></i>');
+                }
+            }
+        });
+    };
+
+    // 最初に実行
+    applyRegionLocks();
+
     const initialHTML = container.innerHTML;
 
-    // 地方と県リスト
     const areas = {
       chubu: ["新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県", "岐阜県", "静岡県", "愛知県"],
       kanto: ["茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県"],
-      tohoku: ["青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県"],
-      hokkaido: ["北海道"],
-      kinki: ["京都府", "大阪府", "三重県", "滋賀県", "兵庫県", "奈良県", "和歌山県"],
-      chugoku: ["鳥取県", "島根県", "岡山県", "広島県", "山口県"],
-      shikoku: ["徳島県", "香川県", "愛媛県", "高知県"],
-      kyushu: ["福岡県", "佐賀県", "長崎県", "大分県", "熊本県", "宮崎県", "鹿児島県", "沖縄県"]
+      // 他の地方...
     };
 
-    // 都道府県クリックイベントを設定する関数
-    // この関数はグローバルスコープの prefecturePaths (prefecture-data.jsで定義) に依存します
     function setupPrefectureClickListeners() {
         container.querySelectorAll(".box").forEach(box => {
-            box.addEventListener("click", () => {
-                const prefectureName = box.querySelector(".contents").textContent;
-                // prefecturePaths は prefecture-data.js で定義されているグローバル変数
+            box.addEventListener("click", (e) => {
+                // ロックされていたら遷移させない
+                if (box.classList.contains('locked')) {
+                    e.stopPropagation();
+                    return;
+                }
+
+                const contents = box.querySelector(".contents");
+                if (!contents) return;
+                
+                const prefectureName = contents.textContent.trim();
                 const path = prefecturePaths[prefectureName];
 
                 if (path) {
                     window.location.href = path;
-                } else {
-                    console.warn(`遷移先URLが設定されていません: ${prefectureName}`);
                 }
             });
         });
     }
 
-    // 地方クリックで県リスト表示
     container.addEventListener("click", e => {
         const target = e.target.closest(".box");
         if (!target) return;
 
-        // 県がクリックされた場合は、setupPrefectureClickListeners内の処理に任せる
-        // (data-area属性がないものが県BOX)
-        if (target.dataset.area === undefined) {
-            return;
-        }
-
+        // 1. 地方ボタンをクリックした時の判定
         const area = target.dataset.area;
-        if (areas[area]) {
-            // 都道府県リストを生成して表示
-            container.innerHTML = areas[area]
-                .map(pref => `<div class="box"><div class="contents">${pref}</div></div>`)
-                .join("");
+        if (area !== undefined) {
+            // 関東と中部以外は何もしない
+            if (area !== "kanto" && area !== "chubu") {
+                return; 
+            }
 
-            backBtn.style.display = "inline-block";
-            
-            // 新しく生成された都道府県要素にイベントリスナーを設定
-            setupPrefectureClickListeners();
+            if (areas[area]) {
+                container.innerHTML = areas[area]
+                    .map(pref => {
+                        // 2. 中部地方の中でのロック判定（富山県以外をロック）
+                        const isLocked = (area === "chubu" && pref !== "富山県");
+                        return `
+                            <div class="box ${isLocked ? 'locked' : ''}">
+                                <div class="contents">${pref}</div>
+                                ${isLocked ? '<i class="fas fa-lock lock-icon"></i>' : ''}
+                            </div>`;
+                    })
+                    .join("");
+
+                backBtn.style.display = "inline-block";
+                setupPrefectureClickListeners();
+            }
         }
     });
 
-    // 戻るボタン
     backBtn.addEventListener("click", () => {
       container.innerHTML = initialHTML;
       backBtn.style.display = "none";
+      applyRegionLocks(); // 戻った時にもう一度ロックを適用
     });
 });
