@@ -3,14 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>マップ - 観光スタンプラリー</title>
-    <!-- 共通スタイル -->
+    <title>神奈川マップ - 観光スタンプラリー</title>
     <link rel="stylesheet" href="../../../src/css/style.css">
-    <!-- マップ専用スタイル -->
     <link rel="stylesheet" href="../../../src/css/prefecture.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- 地図ライブラリ -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/d3/4.3.0/d3.min.js"></script>
     <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script> 
 </head>
@@ -22,22 +19,19 @@
                 <i class="fas fa-user"></i>
                 <div class="profile-ticker">
                     <span id="username-display" class="ticker-item active">読み込み中...</span>
-                    <span class="ticker-item">現在地: 埼玉県</span>
-                    <span class="ticker-item">埼玉の収集率: 5 / 12</span>
-                    <span class="ticker-item">全国の収集率: 123 / 1890</span>
+                    <span id="header-location" class="ticker-item">現在地を取得中</span>
+                    <span id="header-local-rate" class="ticker-item">現在地の収集率計算中</span>
+                    <span id="header-national-rate" class="ticker-item">全国の収集率計算中</span>
                 </div>
             </div>
-            <!-- ▼▼▼ IDを追加 ▼▼▼ -->
             <div class="settings-icon">
                 <a href="../../settings.html"><i class="fas fa-cog"></i></a>
             </div>
         </header>
 
         <main class="main-content map-content">
-            <!-- 地図表示エリア -->
             <div id="map-container"></div>
 
-            <!-- UIオーバーレイ（地図の上に浮いている要素） -->
             <div class="map-ui-layer">
                 <div id="status-box" class="status-box">
                     地図上のエリアに移動してスタンプをゲットしよう！
@@ -64,17 +58,15 @@
         </footer>
     </div>
 
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="../../../src/js/firebase-config.js"></script> 
     <script>
       firebase.initializeApp(firebaseConfig);
     </script>
     
-    <!-- 共通ヘッダー処理 -->
     <script src="../../../src/js/header.js"></script>
-    <!-- マップ処理 -->
     <script src="./kanagawa.js"></script>
 </body>
 </html>
