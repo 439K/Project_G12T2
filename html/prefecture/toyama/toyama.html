@@ -6,6 +6,7 @@
     <title>マップ - 観光スタンプラリー</title>
     <link rel="stylesheet" href="../../../src/css/style.css">
     <link rel="stylesheet" href="../../../src/css/prefecture.css">
+    <link rel="stylesheet" href="../modal.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="//cdnjs.cloudflare.com/ajax/libs/d3/4.3.0/d3.min.js"></script>
@@ -41,6 +42,34 @@
                 </button>
             </div>
         </main>
+
+        <div id="img-modal" class="modal" style="display: none; align-items: center; justify-content: center;">
+            <div class="modal-content" style="text-align: left; height: auto; max-height: 85vh; margin: 0; overflow-y: auto; width: 85%; max-width: 400px;">
+                <span id="modal-close" class="modal-close">&times;</span>
+                
+                <div id="modal-city-name" class="modal-city-name" style="text-align: center; margin-bottom: 15px;"></div>
+                
+                <img id="modal-img" src="" alt="" style="display: block; margin: 0 auto 15px; max-height: 40vh; object-fit: contain;">
+                
+                <p id="modal-desc" style="text-align: left; line-height: 1.5; color: #665252; padding: 0 10px; margin-bottom: 0;"></p>
+                
+                <div style="display: flex; justify-content: center; width: 100%; margin-top: 25px;"> 
+                    <button onclick="document.getElementById('img-modal').style.display='none'" 
+                            class="action-btn" 
+                            style="
+                                margin: 0; 
+                                width: 160px; 
+                                display: flex;           /* ボタン自体をフレックスにする */
+                                justify-content: center; /* 横方向の中央 */
+                                align-items: center;     /* 縦方向の中央 */
+                                text-align: center;      /* 念のためのテキスト中央 */
+                                padding: 10px 0;         /* 左右のパディングをリセットして偏りを防ぐ */
+                            ">
+                        閉じる
+                    </button>
+                </div>
+            </div>
+        </div>
 
         <footer class="bottom-nav">
             <a href="../../friend.html" class="nav-button">
