@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let stampProgress = {}; 
 
     // クールダウン期間 (5秒)
-    const COOLDOWN_MS = 5 * 1000; 
+    const COOLDOWN_MS = 3 * 1000; 
     const MAX_STAMPS = 3; 
 
     // レベルに応じた色
