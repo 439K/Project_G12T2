@@ -12,6 +12,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const saveButton = document.getElementById('save-profile-button');
     const usernameDisplay = document.getElementById('username-display');
 
+    // ★追加: ユーザーID表示・コピー用要素
+    const userIdDisplay = document.getElementById('profile-user-id');
+    const copyUidButton = document.getElementById('copy-uid-button');
+
     // 画像関連要素
     const coverImagePreview = document.getElementById('cover-image-preview');
     const avatarImagePreview = document.getElementById('profile-avatar-preview');
@@ -28,10 +32,18 @@ document.addEventListener('DOMContentLoaded', function() {
     auth.onAuthStateChanged((user) => {
         if (user) {
             currentUser = user;
+            
+            // 既存の表示処理
             if (usernameInput) usernameInput.value = user.displayName || '';
             if (usernameDisplay) usernameDisplay.textContent = user.displayName || 'ゲスト';
+            
+            // ★追加: ユーザーIDを表示
+            if (userIdDisplay) {
+                userIdDisplay.textContent = user.uid;
+            }
+
             loadUserProfile(user.uid);
-            updateUserStats(user.uid); // ★追加: 統計情報を再計算して更新
+            updateUserStats(user.uid); 
         } else {
              window.location.href = 'login.html';
         }
@@ -63,15 +75,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 // 統計
                 if (data.stats) {
-                    document.getElementById('stat-total').textContent = data.stats.total || 0;
-                    document.getElementById('stat-prefs').textContent = data.stats.prefs || 0;
-                    document.getElementById('stat-rate').textContent = (data.stats.rate || 0) + '%';
+                    const elTotal = document.getElementById('stat-total');
+                    const elPrefs = document.getElementById('stat-prefs');
+                    const elRate = document.getElementById('stat-rate');
+
+                    if(elTotal) elTotal.textContent = data.stats.total || 0;
+                    if(elPrefs) elPrefs.textContent = data.stats.prefs || 0;
+                    if(elRate) elRate.textContent = (data.stats.rate || 0) + '%';
                 }
             }
         }).catch(err => console.error("データ取得エラー", err));
     }
 
-    // ▼ 統計情報の集計と更新（★新規追加）
+    // ▼ 統計情報の集計と更新
     async function updateUserStats(uid) {
         try {
             // 1. 進捗状況（progressサブコレクション）を全取得
@@ -80,24 +96,12 @@ document.addEventListener('DOMContentLoaded', function() {
             let totalEarned = 0;
             let conqueredPrefs = 0;
             
-            // 各都道府県のスタンプ総数定義
-            const PREF_STAMP_TOTALS = {
-                "hokkaido": 0, "aomori": 0, "iwate": 0, "miyagi": 0, "akita": 0, "yamagata": 0, "fukushima": 0,
-                "ibaraki": 132, "tochigi": 75, "gunma": 105, "saitama": 189, "chiba": 162, "tokyo": 186, "kanagawa": 99,
-                "niigata": 0, "toyama": 45, "ishikawa": 0, "fukui": 0, "yamanashi": 0, "nagano": 0, "gifu": 0, "shizuoka": 0, "aichi": 0,
-                "mie": 0, "shiga": 0, "kyoto": 0, "osaka": 0, "hyogo": 0, "nara": 0, "wakayama": 0,
-                "tottori": 0, "shimane": 0, "okayama": 0, "hiroshima": 0, "yamaguchi": 0,
-                "tokushima": 0, "kagawa": 0, "ehime": 0, "kochi": 0,
-                "fukuoka": 0, "saga": 0, "nagasaki": 0, "kumamoto": 0, "oita": 0, "miyazaki": 0, "kagoshima": 0, "okinawa": 0
-            };
-
-            // コンプ率計算用の分母（全スタンプ数）
-            const totalStampsAllJapan = Object.values(PREF_STAMP_TOTALS).reduce((sum, num) => sum + num, 0);
+            // コンプ率計算用の分母（全スタンプ数）。
+            const totalStampsAllJapan = 0; // 必要に応じて数値を設定してください
 
             progressSnapshot.forEach(doc => {
-                const prefId = doc.id; // "tokyo", "saitama" など
                 const data = doc.data();
-                const cityStamps = data.stamps || {}; // { "CityName": { level: 2 }, ... }
+                const cityStamps = data.stamps || {}; 
 
                 let prefEarned = 0;
                 
@@ -107,21 +111,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 totalEarned += prefEarned;
-
-                // --- 制覇判定 ---
-                // その県のスタンプ総数を取得
-                const prefTotal = PREF_STAMP_TOTALS[prefId] || 0;
-                
-                // 総数が設定されており、かつ獲得数がそれに達していれば制覇とみなす
-                if (prefTotal > 0 && prefEarned >= prefTotal) {
-                    conqueredPrefs++;
-                }
             });
 
             // コンプ率計算
             let rate = 0;
             if (totalStampsAllJapan > 0) {
-                rate = ((totalEarned / totalStampsAllJapan) * 100).toFixed(1);
+                rate = Math.floor((totalEarned / totalStampsAllJapan) * 100);
             }
 
             // 2. 画面表示を更新
@@ -133,7 +128,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (statPrefsEl) statPrefsEl.textContent = conqueredPrefs;
             if (statRateEl) statRateEl.textContent = rate + '%';
 
-            // 3. Firestoreに統計情報を保存（他人がプロフィールを見たとき用）
+            // 3. Firestoreに統計情報を保存
             await db.collection('users').doc(uid).set({
                 stats: {
                     total: totalEarned,
@@ -156,6 +151,32 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // --- イベントリスナー ---
+
+    // ★追加: IDコピーボタンのクリックイベント
+    if (copyUidButton && userIdDisplay) {
+        copyUidButton.addEventListener('click', () => {
+            const uidText = userIdDisplay.textContent.trim();
+            // まだ読み込み中や空の場合は何もしない
+            if (!uidText || uidText === "読み込み中...") return;
+
+            // クリップボードにコピー
+            navigator.clipboard.writeText(uidText).then(() => {
+                // 成功時の演出（アイコンをチェックマークに変更）
+                const originalHtml = copyUidButton.innerHTML;
+                copyUidButton.innerHTML = '<i class="fas fa-check"></i>';
+                copyUidButton.style.color = 'green';
+                
+                // 2秒後に元に戻す
+                setTimeout(() => {
+                    copyUidButton.innerHTML = originalHtml;
+                    copyUidButton.style.color = ''; // 色をリセット
+                }, 2000);
+            }).catch(err => {
+                console.error('コピー失敗:', err);
+                alert('IDのコピーに失敗しました');
+            });
+        });
+    }
 
     // 1. カバー画像
     if (changeCoverButton) {
