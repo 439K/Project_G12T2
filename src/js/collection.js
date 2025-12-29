@@ -201,11 +201,7 @@ const collectionData = [
                 id: "toyama", // ★追加: FirestoreのドキュメントID
                 cities: [
                     // コンプリート例（3つとも earned: true）
-                    createCity("富山市", "とやまし", [
-                        { src: "../src/images/one-hotaruika.png", desc: "富山のホタルイカ", earned: true },
-                        { src: "../src/images/three-hotaruika.png", desc: "ホタルイカ群遊", earned: true },
-                        { src: "../src/images/gold-three-hotaruika.png", desc: "金のホタルイカ", earned: true }
-                    ]),
+                    createCity("富山市", "とやまし"),
                     createCity("高岡市", "たかおかし"),
                     createCity("射水市", "いみずし"),
                     createCity("魚津市", "うおづし"),
@@ -232,7 +228,7 @@ const collectionData = [
                 id: "tokyo", // ★追加: FirestoreのドキュメントID
                 cities: [
                     // コンプリートしていない例
-                    createCity("千代田区", "ちよだく", [{ src: "../src/images/tokyo-station.png", desc: "東京駅", earned: true }]),
+                    createCity("千代田区", "ちよだく"),
                     createCity("中央区", "ちゅうおうく"),
                     createCity("港区", "みなとく"),
                     createCity("新宿区", "しんじゅくく"),
@@ -300,7 +296,7 @@ const collectionData = [
                 name: "神奈川県",
                 id: "kanagawa", // ★追加: FirestoreのドキュメントID
                 cities: [
-                    createCity("横浜市", "よこはまし", [{ src: "../src/images/minatomirai.png", desc: "みなとみらい", earned: true }]),
+                    createCity("横浜市", "よこはまし"),
                     createCity("川崎市", "かわさきし"),
                     createCity("相模原市", "さがみはらし"),
                     createCity("横須賀市", "よこすかし"),
