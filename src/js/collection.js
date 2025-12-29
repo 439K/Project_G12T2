@@ -896,12 +896,23 @@ async function fetchAndMergeProgress(user) {
 
                                 // 2. Storageが利用可能なら、URLを取得して上書きする
                                 if (storage) {
-                                    const storagePath = `stamps/${pref.id}/${city.name}_${i + 1}.png`;
-                                    const p = storage.ref(storagePath).getDownloadURL()
-                                        .then((url) => {
+                                    const p = (async () => {
+                                        try {
+                                            // 1. 市区町村固有のスタンプ
+                                            const municipalityPath = `stamps/${pref.id}/${city.name}_${i + 1}.png`;
+                                            const url = await storage.ref(municipalityPath).getDownloadURL();
                                             city.stamps[i].src = url;
-                                        })
-                                        .catch(() => {}); // 失敗してもローカルパスがあるので無視
+                                        } catch (e1) {
+                                            try {
+                                                // 2. 都道府県共通のスタンプ
+                                                const prefecturePath = `stamps/${pref.id}/${pref.id}_${i + 1}.png`;
+                                                const url = await storage.ref(prefecturePath).getDownloadURL();
+                                                city.stamps[i].src = url;
+                                            } catch (e2) {
+                                                // 3. どちらもなければローカルパスのまま
+                                            }
+                                        }
+                                    })();
                                     imagePromises.push(p);
                                 }
                             }
