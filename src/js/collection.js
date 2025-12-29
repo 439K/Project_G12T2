@@ -147,7 +147,7 @@ document.head.appendChild(styleSheet);
 
 
 // ■ 1. データ生成ヘルパー（3個設定）
-const createCity = (name, kana, customStamps = null) => {
+const createCity = (name, kana, customStamps = null, displayName = null) => {
     // 目標個数
     const STAMP_LIMIT = 3;
 
@@ -164,7 +164,7 @@ const createCity = (name, kana, customStamps = null) => {
             stamps.push({ src: "../src/images/NoneCeal.png", desc: "", earned: false });
         }
     }
-    return { name, kana, stamps };
+    return { name, kana, stamps, displayName };
 };
 
 // ■ 1.5 マッピング定義 (tokyo.js等から移植・拡張)
@@ -200,7 +200,6 @@ const collectionData = [
                 name: "富山県",
                 id: "toyama", // ★追加: FirestoreのドキュメントID
                 cities: [
-                    // コンプリート例（3つとも earned: true）
                     createCity("富山市", "とやまし"),
                     createCity("高岡市", "たかおかし"),
                     createCity("射水市", "いみずし"),
@@ -227,7 +226,6 @@ const collectionData = [
                 name: "東京都",
                 id: "tokyo", // ★追加: FirestoreのドキュメントID
                 cities: [
-                    // コンプリートしていない例
                     createCity("千代田区", "ちよだく"),
                     createCity("中央区", "ちゅうおうく"),
                     createCity("港区", "みなとく"),
@@ -296,9 +294,34 @@ const collectionData = [
                 name: "神奈川県",
                 id: "kanagawa", // ★追加: FirestoreのドキュメントID
                 cities: [
-                    createCity("横浜市", "よこはまし"),
-                    createCity("川崎市", "かわさきし"),
-                    createCity("相模原市", "さがみはらし"),
+                    createCity("鶴見区", "つるみく", null, "横浜市鶴見区"),
+                    createCity("神奈川区", "かながわく", null, "横浜市神奈川区"),
+                    createCity("西区", "にしく", null, "横浜市西区"),
+                    createCity("中区", "なかく", null, "横浜市中区"),
+                    createCity("南区", "みなみく", null, "横浜市南区"),
+                    createCity("保土ケ谷区", "ほどがやく", null, "横浜市保土ケ谷区"),
+                    createCity("磯子区", "いそごく", null, "横浜市磯子区"),
+                    createCity("金沢区", "かなざわく", null, "横浜市金沢区"),
+                    createCity("港北区", "こうほくく", null, "横浜市港北区"),
+                    createCity("戸塚区", "とつかく", null, "横浜市戸塚区"),
+                    createCity("港南区", "こうなんく", null, "横浜市港南区"),
+                    createCity("旭区", "あさひく", null, "横浜市旭区"),
+                    createCity("緑区", "みどりく", null, "横浜市緑区"),
+                    createCity("瀬谷区", "せやく", null, "横浜市瀬谷区"),
+                    createCity("栄区", "さかえく", null, "横浜市栄区"),
+                    createCity("泉区", "いずみく", null, "横浜市泉区"),
+                    createCity("青葉区", "あおばく", null, "横浜市青葉区"),
+                    createCity("都筑区", "つづきく", null, "横浜市都筑区"),
+                    createCity("川崎区", "かわさきく", null, "川崎市川崎区"),
+                    createCity("幸区", "さいわいく", null, "川崎市幸区"),
+                    createCity("中原区", "なかはらく", null, "川崎市中原区"),
+                    createCity("高津区", "たかつく", null, "川崎市高津区"),
+                    createCity("多摩区", "たまく", null, "川崎市多摩区"),
+                    createCity("宮前区", "みやまえく", null, "川崎市宮前区"),
+                    createCity("麻生区", "あさおく", null, "川崎市麻生区"),
+                    createCity("緑区", "みどりく", null, "相模原市緑区"),
+                    createCity("中央区", "ちゅうおうく", null, "相模原市中央区"),
+                    createCity("南区", "みなみく", null, "相模原市南区"),
                     createCity("横須賀市", "よこすかし"),
                     createCity("平塚市", "ひらつかし"),
                     createCity("鎌倉市", "かまくらし"),
@@ -335,7 +358,16 @@ const collectionData = [
                 name: "埼玉県",
                 id: "saitama", // ★追加
                 cities: [
-                    createCity("さいたま市", "さいたまし"),
+                    createCity("西区", "にしく", null, "さいたま市西区"),
+                    createCity("北区", "きたく", null, "さいたま市北区"),
+                    createCity("大宮区", "おおみやく", null, "さいたま市大宮区"),
+                    createCity("見沼区", "みぬまく", null, "さいたま市見沼区"),
+                    createCity("中央区", "ちゅうおうく", null, "さいたま市中央区"),
+                    createCity("桜区", "さくらく", null, "さいたま市桜区"),
+                    createCity("浦和区", "うらわく", null, "さいたま市浦和区"),
+                    createCity("南区", "みなみく", null, "さいたま市南区"),
+                    createCity("緑区", "みどりく", null, "さいたま市緑区"),
+                    createCity("岩槻区", "いわつきく", null, "さいたま市岩槻区"),
                     createCity("川越市", "かわごえし"),
                     createCity("熊谷市", "くまがやし"),
                     createCity("川口市", "かわぐちし"),
@@ -404,7 +436,12 @@ const collectionData = [
                 name: "千葉県",
                 id: "chiba", // ★追加
                 cities: [
-                    createCity("千葉市", "ちばし"),
+                    createCity("中央区", "ちゅうおうく", null, "千葉市中央区"),
+                    createCity("花見川区", "はなみがわく", null, "千葉市花見川区"),
+                    createCity("稲毛区", "いなげく", null, "千葉市稲毛区"),
+                    createCity("若葉区", "わかばく", null, "千葉市若葉区"),
+                    createCity("緑区", "みどりく", null, "千葉市緑区"),
+                    createCity("美浜区", "みはまく", null, "千葉市美浜区"),
                     createCity("銚子市", "ちょうしし"),
                     createCity("市川市", "いちかわし"),
                     createCity("船橋市", "ふなばしし"),
@@ -658,6 +695,9 @@ function renderCollections() {
 
                 cityDetails.dataset.cityName = cityData.name;
                 cityDetails.dataset.cityKana = cityData.kana;
+                if (cityData.displayName) {
+                    cityDetails.dataset.cityDisplayName = cityData.displayName;
+                }
 
                 const citySummary = document.createElement("summary");
                 citySummary.className = "city-line";
@@ -679,7 +719,8 @@ function renderCollections() {
                 const icon = isComplete ? ' <i class="fas fa-crown" style="color:#d39e00; margin-left:8px;"></i>' : '';
 
                 // HTML生成
-                citySummary.innerHTML = `${cityData.name}${icon} <span class="badge-count">${cityEarnedCount} / ${cityTotalCount}</span>`;
+                const displayName = cityData.displayName || cityData.name;
+                citySummary.innerHTML = `${displayName}${icon} <span class="badge-count">${cityEarnedCount} / ${cityTotalCount}</span>`;
                 cityDetails.appendChild(citySummary);
 
                 // スタンプ画像
@@ -738,8 +779,9 @@ function filterCollections(keyword) {
             cities.forEach(city => {
                 const name = city.dataset.cityName || "";
                 const kana = city.dataset.cityKana || "";
+                const displayName = city.dataset.cityDisplayName || "";
                 
-                if (name.includes(trimKeyword) || kana.includes(trimKeyword)) {
+                if (name.includes(trimKeyword) || kana.includes(trimKeyword) || displayName.includes(trimKeyword)) {
                     city.classList.remove("hidden-item");
                     hasVisibleCity = true;
                     if (trimKeyword !== "") {
