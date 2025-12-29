@@ -374,6 +374,9 @@ async function showProfile(uid) {
         if (userSnap.exists()) {
             userData = { ...userData, ...userSnap.data() };
         }
+        
+        // ★追加: 公開設定のチェック (設定がない場合は true=公開 とみなす)
+        const isPublic = userData.isProfilePublic !== false;
 
         const displayName = userData.displayName || "名無しユーザー";
         const bio = userData.bio || "自己紹介はまだありません。";
@@ -382,7 +385,7 @@ async function showProfile(uid) {
         const stats = userData.stats || { total: 0, prefs: 0, rate: 0 };
         
         if(profileDetailsDiv) {
-            profileDetailsDiv.innerHTML = `
+            let contentHTML = `
                 <div class="friend-profile-header">
                     ${coverUrl ? `<img src="${coverUrl}" class="friend-cover-image" alt="cover">` : ''}
                     
@@ -395,39 +398,55 @@ async function showProfile(uid) {
                     <h2 class="friend-name-text">${displayName}</h2>
                     <div class="friend-id-text">ID: ${uid}</div>
                 </div>
+            `;
 
-                <div class="friend-card">
-                    <h3>自己紹介</h3>
-                    <div class="friend-bio-text">${bio}</div>
-                </div>
+            if (!isPublic) {
+                // ▼ 非公開の場合の表示
+                contentHTML += `
+                    <div class="friend-card" style="text-align: center; padding: 40px 20px; color: #666;">
+                        <i class="fas fa-lock" style="font-size: 3em; margin-bottom: 15px; color: #ccc;"></i>
+                        <h3>このユーザーはプロフィールを非公開にしています</h3>
+                    </div>
+                `;
+            } else {
+                // ▼ 公開の場合の表示（既存の内容）
+                contentHTML += `
+                    <div class="friend-card">
+                        <h3>自己紹介</h3>
+                        <div class="friend-bio-text">${bio}</div>
+                    </div>
 
-                <div class="friend-card">
-                    <h3>記録</h3>
-                    <div class="friend-stats">
-                        <div class="friend-stat-item">
-                            <div class="friend-stat-value">${stats.total || 0}</div>
-                            <div class="friend-stat-label">シール数</div>
-                        </div>
-                        <div class="friend-stat-item">
-                            <div class="friend-stat-value">${stats.prefs || 0}</div>
-                            <div class="friend-stat-label">制覇県</div>
-                        </div>
-                        <div class="friend-stat-item">
-                            <div class="friend-stat-value">${stats.rate || 0}%</div>
-                            <div class="friend-stat-label">コンプ率</div>
+                    <div class="friend-card">
+                        <h3>記録</h3>
+                        <div class="friend-stats">
+                            <div class="friend-stat-item">
+                                <div class="friend-stat-value">${stats.total || 0}</div>
+                                <div class="friend-stat-label">シール数</div>
+                            </div>
+                            <div class="friend-stat-item">
+                                <div class="friend-stat-value">${stats.prefs || 0}</div>
+                                <div class="friend-stat-label">制覇県</div>
+                            </div>
+                            <div class="friend-stat-item">
+                                <div class="friend-stat-value">${stats.rate || 0}%</div>
+                                <div class="friend-stat-label">コンプ率</div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="friend-card">
-                    <h3>集めたシール</h3>
-                    <div id="friend-stamps-insert-area"></div>
-                </div>
-            `;
+                    <div class="friend-card">
+                        <h3>集めたシール</h3>
+                        <div id="friend-stamps-insert-area"></div>
+                    </div>
+                `;
+            }
+            
+            profileDetailsDiv.innerHTML = contentHTML;
         }
 
+        // スタンプ描画処理（公開されている場合のみ実行）
         const insertArea = document.getElementById("friend-stamps-insert-area");
-        if(insertArea) {
+        if(insertArea && isPublic) {
             const displayStamps = (userData.stamps && userData.stamps.length > 0) ? userData.stamps : (friendSimple?.stamps || []);
             
             if (!displayStamps || displayStamps.length === 0) {
