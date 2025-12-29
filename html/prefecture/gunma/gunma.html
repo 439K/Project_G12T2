@@ -4,13 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>マップ - 観光スタンプラリー</title>
-    <!-- 共通スタイル -->
     <link rel="stylesheet" href="../../../src/css/style.css">
-    <!-- マップ専用スタイル -->
     <link rel="stylesheet" href="../../../src/css/prefecture.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- 地図ライブラリ -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/d3/4.3.0/d3.min.js"></script>
     <script src="https://unpkg.com/@turf/turf@6/turf.min.js"></script> 
 </head>
@@ -27,17 +24,14 @@
                     <span id="header-national-rate" class="ticker-item">全国の収集率計算中</span>
                 </div>
             </div>
-            <!-- ▼▼▼ IDを追加 ▼▼▼ -->
             <div class="settings-icon">
                 <a href="../../settings.html"><i class="fas fa-cog"></i></a>
             </div>
         </header>
 
         <main class="main-content map-content">
-            <!-- 地図表示エリア -->
             <div id="map-container"></div>
 
-            <!-- UIオーバーレイ（地図の上に浮いている要素） -->
             <div class="map-ui-layer">
                 <div id="status-box" class="status-box">
                     地図上のエリアに移動してスタンプをゲットしよう！
@@ -64,18 +58,18 @@
         </footer>
     </div>
 
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    
     <script src="../../../src/js/firebase-config.js"></script> 
     <script>
       firebase.initializeApp(firebaseConfig);
     </script>
     
-    <!-- 共通ヘッダー処理 -->
     <script src="../../../src/js/header.js"></script>
-    <!-- マップ処理 -->
-    <script src="./gunma.js"></script>
+    <script src="./gunma-config.js"></script>
+    <script src="../map-loader.js"></script> 
 </body>
 </html>
