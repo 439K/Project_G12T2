@@ -26,7 +26,6 @@ function initializeMap(config) {
     let stampProgress = {}; 
 
     // 定数
-    const COOLDOWN_MS = 3 * 1000; 
     const MAX_STAMPS = 3; 
     const LEVEL_COLORS = {
         0: "#e2ffdb", // 未獲得
@@ -114,7 +113,6 @@ function initializeMap(config) {
             }
         } catch (error) {
             console.error("Firebaseからの読み込みに失敗（オフラインの可能性があります）:", error);
-            // 失敗してもキャッシュが表示されているので、ユーザーへの通知は不要
         }
     }
 
@@ -256,12 +254,26 @@ function initializeMap(config) {
             return;
         }
 
+        // --- クールダウン判定の修正箇所 ---
+        let requiredCooldown = 0;
+        if (progress.level === 1) {
+            requiredCooldown = 1 * 60 * 1000; // レベル1から2の間：1分
+        } else if (progress.level === 2) {
+            requiredCooldown = 10 * 60 * 1000; // レベル2から3の間：10分
+        }
+
         const timeElapsed = currentTime - progress.lastCheckIn;
-        if (timeElapsed < COOLDOWN_MS) {
-            const timeLeft = Math.ceil((COOLDOWN_MS - timeElapsed) / 1000);
-            if (statusBox) statusBox.textContent = `クールダウン中...あと ${timeLeft} 秒`;
+
+        if (timeElapsed < requiredCooldown) {
+            const totalSecondsLeft = Math.ceil((requiredCooldown - timeElapsed) / 1000);
+            const mins = Math.floor(totalSecondsLeft / 60);
+            const secs = totalSecondsLeft % 60;
+            const timeStr = mins > 0 ? `${mins}分${secs}秒` : `${secs}秒`;
+
+            if (statusBox) statusBox.textContent = `クールダウン中...あと ${timeStr}`;
             return;
         }
+        // ------------------------------
 
         progress.level += 1;
         progress.lastCheckIn = currentTime;
@@ -283,21 +295,17 @@ function initializeMap(config) {
         let stampElement = d3.select("#" + stampId);
         const centroid = path.centroid(feature); 
         
-        // スタンプサイズの調整（大型化）
         const currentSize = 60 + (level - 1) * 20; 
         
         let imagePath = null;
         try {
-            // 1. 市区町村固有のスタンプを探す
             const storageRefPath = `stamps/${prefectureId}/${name}_${level}.png`;
             imagePath = await storage.ref(storageRefPath).getDownloadURL();
         } catch (e1) {
             try {
-                // 2. なければ都道府県共通のスタンプを探す (例: stamps/tokyo/tokyo_1.png)
                 const prefecturePath = `stamps/${prefectureId}/${prefectureId}_${level}.png`;
                 imagePath = await storage.ref(prefecturePath).getDownloadURL();
             } catch (e2) {
-                // 3. それもなければローカル
                 imagePath = getStampImagePath(name, level);
             }
         }

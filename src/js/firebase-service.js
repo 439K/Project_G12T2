@@ -18,6 +18,7 @@ import {
     limit // limitもインポート
 } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-functions.js";
+import { getStorage, ref, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-storage.js";
 
 // firebase-config.js で定義された firebaseConfig グローバル変数を使用
 // windowオブジェクト経由でも探すようにして確実性を高める
@@ -34,6 +35,7 @@ const app = initializeApp(config);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const functions = getFunctions(app, 'us-central1'); // 必要に応じてリージョンを変更
+const storage = getStorage(app);
 
 // ★追加: フレンドリクエストの監視処理をこのファイル内で完結させる
 // これにより、queryオブジェクトの受け渡しによるエラーと、権限エラーの両方を解決します
@@ -129,6 +131,7 @@ async function checkRequestExists(senderId, receiverId) {
 export { 
     auth, 
     db, 
+    storage,
     functions,
     onAuthStateChanged, // ★追加: 認証状態監視関数もエクスポート
     // Firestore関数もここからエクスポート
@@ -144,6 +147,8 @@ export {
     setDoc,
     orderBy,
     limit, // limitもエクスポートに追加
+    ref,
+    getDownloadURL,
     httpsCallable,
     subscribeToFriendRequests, // ★変更: 監視関数をエクスポート
     createSearchUsersQuery, // ★追加
