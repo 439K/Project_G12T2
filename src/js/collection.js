@@ -915,7 +915,7 @@ async function fetchAndMergeProgress(user) {
                 if (!prefProgress) return;
 
                 pref.cities.forEach(city => {
-                    // この市のデータがあるか確認
+                    // この市（または区）のデータがあるか確認
                     const cityData = prefProgress[city.name];
                     if (cityData && cityData.level > 0) {
                         const level = cityData.level;
@@ -936,7 +936,7 @@ async function fetchAndMergeProgress(user) {
                                 if (storage) {
                                     const p = (async () => {
                                         try {
-                                            // 1. 市区町村固有のスタンプ
+                                            // 1. 市区町村（区を含む）固有のスタンプを探す
                                             const municipalityPath = `stamps/${pref.id}/${city.name}_${i + 1}.png`;
                                             const url = await storage.ref(municipalityPath).getDownloadURL();
                                             city.stamps[i].src = url;
