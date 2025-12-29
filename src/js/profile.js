@@ -96,10 +96,22 @@ document.addEventListener('DOMContentLoaded', function() {
             let totalEarned = 0;
             let conqueredPrefs = 0;
             
-            // コンプ率計算用の分母（全スタンプ数）。
-            const totalStampsAllJapan = 0; // 必要に応じて数値を設定してください
+            // 各都道府県のスタンプ総数定義
+            const PREF_STAMP_TOTALS = {
+                "hokkaido": 0, "aomori": 0, "iwate": 0, "miyagi": 0, "akita": 0, "yamagata": 0, "fukushima": 0,
+                "ibaraki": 132, "tochigi": 75, "gunma": 105, "saitama": 189, "chiba": 162, "tokyo": 186, "kanagawa": 99,
+                "niigata": 0, "toyama": 45, "ishikawa": 0, "fukui": 0, "yamanashi": 0, "nagano": 0, "gifu": 0, "shizuoka": 0, "aichi": 0,
+                "mie": 0, "shiga": 0, "kyoto": 0, "osaka": 0, "hyogo": 0, "nara": 0, "wakayama": 0,
+                "tottori": 0, "shimane": 0, "okayama": 0, "hiroshima": 0, "yamaguchi": 0,
+                "tokushima": 0, "kagawa": 0, "ehime": 0, "kochi": 0,
+                "fukuoka": 0, "saga": 0, "nagasaki": 0, "kumamoto": 0, "oita": 0, "miyazaki": 0, "kagoshima": 0, "okinawa": 0
+            };
+
+            // コンプ率計算用の分母（全スタンプ数）
+            const totalStampsAllJapan = Object.values(PREF_STAMP_TOTALS).reduce((sum, num) => sum + num, 0);
 
             progressSnapshot.forEach(doc => {
+                const prefId = doc.id;
                 const data = doc.data();
                 const cityStamps = data.stamps || {}; 
 
@@ -111,12 +123,18 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
 
                 totalEarned += prefEarned;
+
+                // --- 制覇判定 ---
+                const prefTotal = PREF_STAMP_TOTALS[prefId] || 0;
+                if (prefTotal > 0 && prefEarned >= prefTotal) {
+                    conqueredPrefs++;
+                }
             });
 
             // コンプ率計算
             let rate = 0;
             if (totalStampsAllJapan > 0) {
-                rate = Math.floor((totalEarned / totalStampsAllJapan) * 100);
+                rate = ((totalEarned / totalStampsAllJapan) * 100).toFixed(1);
             }
 
             // 2. 画面表示を更新
