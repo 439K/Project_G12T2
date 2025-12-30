@@ -3,7 +3,7 @@
 /* メインコンテンツの調整 */
 .settings-page {
     padding: 20px 15px;
-    min-height: calc(100vh - 120px);
+    display: block;
 }
 
 .settings-group {
