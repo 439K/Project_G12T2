@@ -1,13 +1,18 @@
 /**
  * map-loader.js
- * 重複描画（ゴースト現象）を物理的に排除する「強制更新」版
+ * 重複描画対策済 ＋ 特産品説明（municipalityDescMap）対応版
  */
 function initializeMap(config) {
     // =======================================================
     // 1. 設定と状態
     // =======================================================
     const { 
-        prefectureId, geojsonPath, projectionConfig, municipalityPathMap, stampSizeConfig 
+        prefectureId, 
+        geojsonPath, 
+        projectionConfig, 
+        municipalityPathMap,
+        municipalityDescMap, // ← 追加
+        stampSizeConfig 
     } = config;
 
     const baseSize = (stampSizeConfig && stampSizeConfig.base) ? stampSizeConfig.base : 50;
@@ -189,28 +194,24 @@ function initializeMap(config) {
     }
 
     // =======================================================
-    // ★ 修正版：物理削除＆再生成ロジック
+    // 5. 画像更新（物理削除＆再生成）
     // =======================================================
     async function updateStampImage(name, feature, level, useTransition) {
         const stampId = "stamp-" + name;
         const centroid = path.centroid(feature); 
         const currentSize = baseSize + (level - 1) * incSize; 
 
-        // 1. 【最強の重複対策】既存のものを一回完全に消す
-        // これをURL取得（await）の前にやることで、絶対に2重にならないようにします
         stampGroup.selectAll("#" + stampId).remove();
 
-        // 2. 新しいスタンプを「透明な状態」で作成
         const stampElement = stampGroup.append("image")
             .attr("id", stampId)
             .attr("x", centroid[0] - currentSize / 2)
             .attr("y", centroid[1] - currentSize / 2)
             .attr("width", currentSize)
             .attr("height", currentSize)
-            .attr("opacity", 0) // 最初は隠しておく
+            .attr("opacity", 0)
             .style("cursor", "pointer");
 
-        // 3. URLを非同期で取得
         let imagePath = null;
         try {
             const storageRefPath = `stamps/${prefectureId}/${name}_${level}.png`;
@@ -222,28 +223,35 @@ function initializeMap(config) {
             } catch (e2) { imagePath = getStampImagePath(name, level); }
         }
 
-        // 4. 内容を反映させて表示
         stampElement
             .attr("href", imagePath)
             .on("click", () => showStampModal(name, imagePath, level));
 
         if (useTransition) {
-            stampElement.transition().duration(500)
-                .attr("opacity", 1);
+            stampElement.transition().duration(500).attr("opacity", 1);
         } else {
             stampElement.attr("opacity", 1);
         }
     }
 
     // =======================================================
-    // 5. モーダルと自動チェック
+    // 6. モーダル表示（特産品説明を追記）
     // =======================================================
     function showStampModal(name, imgSrc, level) {
         const m = document.getElementById("img-modal");
         if (!m) return;
         document.getElementById("modal-city-name").textContent = name;
         document.getElementById("modal-img").src = imgSrc;
-        document.getElementById("modal-desc").textContent = `${name}のスタンプ (レベル${level})です。現地を訪れて獲得しました！`;
+
+        // もともとの文言
+        let descText = `${name}のスタンプ (レベル${level})です。現地を訪れて獲得しました！`;
+
+        // 特産品説明があれば改行して追記
+        if (municipalityDescMap && municipalityDescMap[name]) {
+            descText += `\n\n【地域の説明】\n${municipalityDescMap[name]}`;
+        }
+
+        document.getElementById("modal-desc").textContent = descText;
         m.style.display = "flex";
     }
 
