@@ -8,8 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // prefectureUrl は "prefecture/tokyo/tokyo.html" のような形式
         const parts = prefectureUrl.split('/');
         const prefKey = parts[1]; // 'tokyo'
-        // ルートからの絶対パスを返す
-        return `/html/prefecture/${prefKey}/${prefKey}.geojson`;
+        // HTMLファイルからの相対パスを返す
+        return `html/prefecture/${prefKey}/${prefKey}.geojson`;
     }
     
     // GeoJSONパスのマッピングを生成
