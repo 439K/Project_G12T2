@@ -1,5 +1,4 @@
 // Your web app's Firebase configuration
-// DO NOT PUSH IT!!!
 const firebaseConfig = {
   apiKey: "AIzaSyA4vTXyfJKHWrP-t3kQ596EzctyrpPxyIE",
   authDomain: "project-g12t2.firebaseapp.com",
