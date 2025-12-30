@@ -1,17 +1,13 @@
 /**
  * map-loader.js
- * 重複描画（ゴースト現象）対策済み完全版
+ * 重複描画（ゴースト現象）を物理的に排除する「強制更新」版
  */
 function initializeMap(config) {
     // =======================================================
     // 1. 設定と状態
     // =======================================================
     const { 
-        prefectureId, 
-        geojsonPath, 
-        projectionConfig, 
-        municipalityPathMap,
-        stampSizeConfig 
+        prefectureId, geojsonPath, projectionConfig, municipalityPathMap, stampSizeConfig 
     } = config;
 
     const baseSize = (stampSizeConfig && stampSizeConfig.base) ? stampSizeConfig.base : 50;
@@ -29,9 +25,7 @@ function initializeMap(config) {
     let stampProgress = {}; 
 
     const MAX_STAMPS = 3; 
-    const LEVEL_COLORS = {
-        0: "#e2ffdb", 1: "#ffe082", 2: "#ffb300", 3: "#ff8f00"
-    };
+    const LEVEL_COLORS = { 0: "#e2ffdb", 1: "#ffe082", 2: "#ffb300", 3: "#ff8f00" };
 
     function getTargetName(feature) {
         return feature.properties.N03_005 || feature.properties.N03_004;
@@ -195,29 +189,28 @@ function initializeMap(config) {
     }
 
     // =======================================================
-    // ★ 修正版：重複描画防止ロジック
+    // ★ 修正版：物理削除＆再生成ロジック
     // =======================================================
     async function updateStampImage(name, feature, level, useTransition) {
         const stampId = "stamp-" + name;
         const centroid = path.centroid(feature); 
         const currentSize = baseSize + (level - 1) * incSize; 
 
-        // 1. 同期のタイミングで「枠（image要素）」があるかチェックし、なければ即作る
-        // await の前に実行することで、二重作成を物理的に防ぎます
-        let stampElement = d3.select("#" + stampId);
-        
-        if (stampElement.empty()) {
-            stampElement = stampGroup.append("image")
-                .attr("id", stampId)
-                .attr("x", centroid[0] - currentSize / 2)
-                .attr("y", centroid[1] - currentSize / 2)
-                .attr("width", currentSize)
-                .attr("height", currentSize)
-                .attr("opacity", 0)
-                .style("cursor", "pointer");
-        }
+        // 1. 【最強の重複対策】既存のものを一回完全に消す
+        // これをURL取得（await）の前にやることで、絶対に2重にならないようにします
+        stampGroup.selectAll("#" + stampId).remove();
 
-        // 2. URLを非同期で取得
+        // 2. 新しいスタンプを「透明な状態」で作成
+        const stampElement = stampGroup.append("image")
+            .attr("id", stampId)
+            .attr("x", centroid[0] - currentSize / 2)
+            .attr("y", centroid[1] - currentSize / 2)
+            .attr("width", currentSize)
+            .attr("height", currentSize)
+            .attr("opacity", 0) // 最初は隠しておく
+            .style("cursor", "pointer");
+
+        // 3. URLを非同期で取得
         let imagePath = null;
         try {
             const storageRefPath = `stamps/${prefectureId}/${name}_${level}.png`;
@@ -229,24 +222,16 @@ function initializeMap(config) {
             } catch (e2) { imagePath = getStampImagePath(name, level); }
         }
 
-        // 3. 確定した情報を適用（アニメーション制御）
-        stampElement.interrupt() // 実行中のアニメーションがあれば止める
+        // 4. 内容を反映させて表示
+        stampElement
             .attr("href", imagePath)
             .on("click", () => showStampModal(name, imagePath, level));
 
         if (useTransition) {
             stampElement.transition().duration(500)
-                .attr("opacity", 1)
-                .attr("x", centroid[0] - currentSize / 2)
-                .attr("y", centroid[1] - currentSize / 2)
-                .attr("width", currentSize)
-                .attr("height", currentSize);
+                .attr("opacity", 1);
         } else {
-            stampElement.attr("opacity", 1)
-                .attr("x", centroid[0] - currentSize / 2)
-                .attr("y", centroid[1] - currentSize / 2)
-                .attr("width", currentSize)
-                .attr("height", currentSize);
+            stampElement.attr("opacity", 1);
         }
     }
 
