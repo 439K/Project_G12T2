@@ -11,6 +11,10 @@ const kanagawaConfig = {
         const ward = feature.properties.N03_005 || "";
         return ward ? (city + ward) : city;
     },
+    stampSizeConfig: {
+        base: 30,      // レベル1の時の基本サイズ
+        increment: 20  // レベルが1上がるごとの増加量
+    },
     municipalityPathMap: {
         // 横浜市 (18区)
         "横浜市鶴見区": "yokohama-tsurumi", "横浜市神奈川区": "yokohama-kanagawa", "横浜市西区": "yokohama-nishi",

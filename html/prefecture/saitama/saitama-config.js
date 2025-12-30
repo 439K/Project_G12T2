@@ -5,6 +5,10 @@ const saitamaConfig = {
         scale: 42000,
         center: [139.30, 36.01]
     },
+    stampSizeConfig: {
+        base: 30,      // レベル1の時の基本サイズ
+        increment: 20  // レベルが1上がるごとの増加量
+    },
     // GeoJSONのFeatureから名前を抽出するロジック
     getTargetName: function(feature) {
         // N03_005(区名)があればそれを使い、なければN03_004(市町村名)を使う

@@ -5,6 +5,10 @@ const ibarakiConfig = {
         scale: 42000,
         center: [140.26, 36.32]
     },
+    stampSizeConfig: {
+        base: 50,      // レベル1の時の基本サイズ
+        increment: 20  // レベルが1上がるごとの増加量
+    },
     municipalityPathMap: {
         "水戸市": "mito-shi", "日立市": "hitachi-shi", "土浦市": "tsuchiura-shi", "古河市": "koga-shi",
         "石岡市": "ishioka-shi", "結城市": "yuki-shi", "龍ケ崎市": "ryugasaki-shi", "下妻市": "shimotsuma-shi",
