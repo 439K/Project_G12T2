@@ -21,20 +21,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const checkPrefectureBtn = document.getElementById('check-stamp-prefecture-btn');
 
     if (checkPrefectureBtn) {
-        checkPrefectureBtn.addEventListener('click', async () => {
+        checkPrefectureBtn.addEventListener('click', () => {
             checkPrefectureBtn.disabled = true;
             checkPrefectureBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 判定中...';
 
-            try {
-                // 位置情報取得
-                const position = await new Promise((resolve, reject) => {
-                    navigator.geolocation.getCurrentPosition(resolve, reject, {
-                        enableHighAccuracy: true,
-                        timeout: 10000,
-                        maximumAge: 0
-                    });
-                });
-
+            const successCallback = async (position) => {
                 const userPoint = turf.point([position.coords.longitude, position.coords.latitude]);
                 
                 let foundPrefecture = false;
@@ -69,10 +60,25 @@ document.addEventListener('DOMContentLoaded', () => {
                     checkPrefectureBtn.disabled = false;
                     checkPrefectureBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i> 現在地でスタンプをチェック';
                 }
+            };
 
-            } catch (error) {
+            const errorCallback = (error) => {
                 console.error('Geolocation error:', error);
                 alert(`位置情報の取得に失敗しました: ${error.message}`);
+                checkPrefectureBtn.disabled = false;
+                checkPrefectureBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i> 現在地でスタンプをチェック';
+            };
+
+            try {
+                navigator.geolocation.getCurrentPosition(successCallback, errorCallback, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                });
+            } catch (error) {
+                // In case getCurrentPosition itself throws an error (e.g., if geolocation is blocked by browser settings)
+                console.error('Geolocation initiation error:', error);
+                alert(`位置情報サービスの利用が許可されていません。ブラウザの設定を確認してください。`);
                 checkPrefectureBtn.disabled = false;
                 checkPrefectureBtn.innerHTML = '<i class="fas fa-map-marker-alt"></i> 現在地でスタンプをチェック';
             }
