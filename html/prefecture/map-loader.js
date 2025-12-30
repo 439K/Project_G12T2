@@ -2,7 +2,7 @@
  * map-loader.js
  * 各都道府県のHTMLから呼び出される共通地図読み込みライブラリ
  * モーダル表示・可変サイズ・キャッシュ・新クールダウン機能統合版
- * 画像表示の安定化修正済み
+ * 【修正内容】レベルアップ時の画像消失バグ対策（トランジション制御の強化）
  */
 function initializeMap(config) {
     // =======================================================
@@ -13,10 +13,9 @@ function initializeMap(config) {
         geojsonPath, 
         projectionConfig, 
         municipalityPathMap,
-        stampSizeConfig // HTML側で指定するサイズ設定
+        stampSizeConfig 
     } = config;
 
-    // サイズ設定のデフォルト値（HTML側で未指定の場合の予備）
     const baseSize = (stampSizeConfig && stampSizeConfig.base) ? stampSizeConfig.base : 50;
     const incSize = (stampSizeConfig && stampSizeConfig.increment) ? stampSizeConfig.increment : 15;
 
@@ -31,7 +30,6 @@ function initializeMap(config) {
     let stampGroup = null;
     let stampProgress = {}; 
 
-    // 定数
     const MAX_STAMPS = 3; 
     const LEVEL_COLORS = {
         0: "#e2ffdb", 1: "#ffe082", 2: "#ffb300", 3: "#ff8f00"
@@ -72,7 +70,6 @@ function initializeMap(config) {
         if (!currentUser || !geoJSONData) return;
         const key = getCacheKey();
 
-        // 1. まずキャッシュから表示
         if (key) {
             const cachedData = localStorage.getItem(key);
             if (cachedData) {
@@ -83,7 +80,6 @@ function initializeMap(config) {
             }
         }
 
-        // 2. Firebaseから最新取得
         try {
             const doc = await db.collection('users').doc(currentUser.uid)
                             .collection('progress').doc(prefectureId).get();
@@ -98,7 +94,7 @@ function initializeMap(config) {
                 resetMapAndProgress();
             }
         } catch (error) {
-            console.error("Firebase読み込み失敗（オフライン）", error);
+            console.error("Firebase読み込み失敗", error);
         }
     }
 
@@ -195,27 +191,24 @@ function initializeMap(config) {
                 break; 
             }
         }
-        if (!found && statusBox) statusBox.textContent = "現在の位置はエリア外です。対象の地域に移動してください。";
+        if (!found && statusBox) statusBox.textContent = "現在の位置はエリア外です。";
     }
 
     // =======================================================
-    // 4. スタンプ付与
+    // 4. スタンプ付与ロジック
     // =======================================================
     function grantStamp(name, feature) {
         const currentTime = Date.now();
         let progress = stampProgress[name] || { level: 0, lastCheckIn: 0 };
 
         if (progress.level >= MAX_STAMPS) {
-            if (statusBox) statusBox.textContent = `${name} のスタンプはコンプリート済みです！`;
+            if (statusBox) statusBox.textContent = `${name} はコンプリート済みです！`;
             return;
         }
 
         let requiredCooldown = 0;
-        if (progress.level === 1) {
-            requiredCooldown = 1 * 60 * 1000; 
-        } else if (progress.level === 2) {
-            requiredCooldown = 10 * 60 * 1000; 
-        }
+        if (progress.level === 1) requiredCooldown = 1 * 60 * 1000; 
+        else if (progress.level === 2) requiredCooldown = 10 * 60 * 1000; 
 
         const timeElapsed = currentTime - progress.lastCheckIn;
 
@@ -224,7 +217,6 @@ function initializeMap(config) {
             const mins = Math.floor(totalSecondsLeft / 60);
             const secs = totalSecondsLeft % 60;
             const timeStr = mins > 0 ? `${mins}分${secs}秒` : `${secs}秒`;
-
             if (statusBox) statusBox.textContent = `${name}のアップグレードまで あと ${timeStr}`;
             return;
         }
@@ -244,7 +236,7 @@ function initializeMap(config) {
     }
 
     // =======================================================
-    // ★ 修正済み画像表示ロジック
+    // ★ 修正版：画像表示ロジック（消失防止）
     // =======================================================
     async function updateStampImage(name, feature, level, useTransition) {
         const stampId = "stamp-" + name;
@@ -252,7 +244,6 @@ function initializeMap(config) {
         const centroid = path.centroid(feature); 
         const currentSize = baseSize + (level - 1) * incSize; 
         
-        // 1. URL取得を確実に終わらせる
         let imagePath = null;
         try {
             const storageRefPath = `stamps/${prefectureId}/${name}_${level}.png`;
@@ -266,38 +257,49 @@ function initializeMap(config) {
             }
         }
 
-        // 2. 要素の作成または更新
         if (stampElement.empty()) {
-            // 新規作成
+            // --- 新規作成 ---
             stampElement = stampGroup.append("image")
                 .attr("id", stampId)
-                .attr("href", imagePath) // パスを即座にセット
+                .attr("href", imagePath)
                 .attr("x", centroid[0] - currentSize / 2)
                 .attr("y", centroid[1] - currentSize / 2)
                 .attr("width", currentSize)
                 .attr("height", currentSize)
-                .attr("opacity", 0) // 一旦透明に
+                .attr("opacity", 0)
                 .style("cursor", "pointer")
                 .on("click", () => showStampModal(name, imagePath, level));
 
-            // URLがセットされた後に不透明度を1にする（アニメーションあり/なし）
             if (useTransition) {
                 stampElement.transition().duration(500).attr("opacity", 1);
             } else {
                 stampElement.attr("opacity", 1);
             }
         } else {
-            // 既存更新
-            const target = useTransition ? stampElement.transition().duration(300) : stampElement;
-            target.attr("href", imagePath)
-                .attr("x", centroid[0] - currentSize / 2)
-                .attr("y", centroid[1] - currentSize / 2)
-                .attr("width", currentSize)
-                .attr("height", currentSize)
-                .attr("opacity", 1); // 確実に表示状態にする
+            // --- 既存更新（Lv2, Lv3） ---
+            
+            // 割り込み処理を入れ、画像パス・透明度・クリックイベントを即座に確定
+            stampElement.interrupt() 
+                .attr("href", imagePath)
+                .attr("opacity", 1) 
+                .on("click", () => showStampModal(name, imagePath, level));
 
-            // クリックイベントの再設定（URLが更新されるため）
-            stampElement.on("click", () => showStampModal(name, imagePath, level));
+            // サイズと位置だけを滑らかに動かす
+            if (useTransition) {
+                stampElement.transition()
+                    .duration(500)
+                    .ease(d3.easeBackOut) // ポップに大きくなる演出
+                    .attr("x", centroid[0] - currentSize / 2)
+                    .attr("y", centroid[1] - currentSize / 2)
+                    .attr("width", currentSize)
+                    .attr("height", currentSize);
+            } else {
+                stampElement
+                    .attr("x", centroid[0] - currentSize / 2)
+                    .attr("y", centroid[1] - currentSize / 2)
+                    .attr("width", currentSize)
+                    .attr("height", currentSize);
+            }
         }
     }
 
@@ -309,7 +311,7 @@ function initializeMap(config) {
         if (!modal) return;
         document.getElementById("modal-city-name").textContent = name;
         document.getElementById("modal-img").src = imgSrc;
-        document.getElementById("modal-desc").textContent = `${name}のスタンプ (レベル ${level}) です。現地を訪れて獲得しました！`;
+        document.getElementById("modal-desc").textContent = `${name}のスタンプ (レベル ${level}) です。`;
         modal.style.display = "flex";
     }
 
