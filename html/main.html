@@ -28,17 +28,18 @@
         </header>
 
         <main class="main-content">
-            <div class="book-container">
-                <a href="./47.html"><img src="../src/images/book.png" alt="冒険の書" class="book-image"></a>
+            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                <div class="book-container">
+                    <a href="./47.html"><img src="../src/images/book.png" alt="冒険の書" class="book-image"></a>
+                </div>
+                <!-- ▼▼▼ 現在地チェックボタンを main の中に移動 ▼▼▼ -->
+                <div class="action-buttons-container">
+                    <button id="check-stamp-prefecture-btn" class="action-btn">
+                        <i class="fas fa-map-marker-alt"></i> 現在地でスタンプをチェック
+                    </button>
+                </div>
             </div>
         </main>
-
-        <!-- ▼▼▼ 現在地チェックボタンを main の外に移動 ▼▼▼ -->
-        <div class="action-buttons-container">
-            <button id="check-stamp-prefecture-btn" class="action-btn">
-                <i class="fas fa-map-marker-alt"></i> 現在地でスタンプをチェック
-            </button>
-        </div>
 
         <footer class="bottom-nav">
             <a href="./friend.html" class="nav-button">
