@@ -39,3 +39,7 @@
     font-weight: bold;
     font-size: 1.4rem;
 }
+
+#modal-desc {
+    white-space: pre-wrap; /* これで \n が改行として表示されます */
+}
