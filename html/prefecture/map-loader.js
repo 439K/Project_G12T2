@@ -248,7 +248,7 @@ function initializeMap(config) {
 
         // 特産品説明があれば改行して追記
         if (municipalityDescMap && municipalityDescMap[name]) {
-            descText += `\n\n【地域の特産品】\n${municipalityDescMap[name]}`;
+            descText += `\n\n【地域の説明】\n${municipalityDescMap[name]}`;
         }
 
         document.getElementById("modal-desc").textContent = descText;
