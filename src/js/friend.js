@@ -1,4 +1,4 @@
-import { auth, db, storage, ref, getDownloadURL, onAuthStateChanged, doc, setDoc, getDoc, collection, getDocs } from './firebase-service.js'; 
+import { auth, db, storage, ref, getDownloadURL, onAuthStateChanged, doc, setDoc, getDoc, collection, getDocs, query, orderBy, limit } from './firebase-service.js'; 
 import { 
     searchUsers, 
     sendFriendRequest, 
@@ -46,6 +46,62 @@ const MUNICIPALITY_PATH_MAP = {
 const stampKeys = Object.keys(stampMasterData);
 let currentFriendsList = [];
 
+// ★追加: ランキング用スタイル定義
+const rankingStyle = document.createElement("style");
+rankingStyle.innerText = `
+    .ranking-tabs {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 15px;
+        background-color: transparent;
+        gap: 10px;
+    }
+    .ranking-tab {
+        flex: 1;
+        padding: 12px;
+        background-color: rgba(139, 126, 116, 0.7);
+        border: 1px solid #ddd;
+        border-radius: 50px;
+        font-size: 16px;
+        font-weight: bold;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.3s;
+        backdrop-filter: blur(5px);
+    }
+    .ranking-tab.active {
+        background-color: rgba(255, 252, 249, 0.75);
+        color: #5a4e46;
+        border-color: #8b7e74;
+        backdrop-filter: blur(5px);
+    }
+    .ranking-tab:hover {
+        background-color: rgba(122, 110, 101, 0.85);
+    }
+    .ranking-tab.active:hover {
+        background-color: rgba(255, 255, 255, 0.9);
+    }
+    .ranking-back-btn {
+        background-color: rgba(255, 255, 255, 0.75);
+        border: 1px solid #b8860b;
+        color: #5a4e46;
+        font-size: 1rem;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 20px;
+        border-radius: 25px;
+        transition: all 0.3s;
+        font-weight: bold;
+        backdrop-filter: blur(5px);
+    }
+    .ranking-back-btn:hover {
+        background-color: rgba(255, 255, 255, 0.9);
+    }
+`;
+document.head.appendChild(rankingStyle);
+
 // --- DOM要素 ---
 const mainContent = document.querySelector('.main-content'); 
 const listContainer = document.getElementById("friend-list-container");
@@ -74,6 +130,8 @@ const modalStampDescription = document.getElementById("modal-stamp-description")
 
 let unsubscribeRequests = null;
 let unsubscribeFriends = null;
+
+let currentRankingMode = 'friend'; // 'friend' | 'global'
 
 // =========================================================
 //  Firebase 認証と初期化フロー
@@ -616,47 +674,121 @@ async function showRanking() {
     profileContainer.style.display = "none";
     rankingContainer.style.display = "block";
 
-    // ★追加: 自分自身のデータを取得してリストに加える
-    let allUsers = [...currentFriendsList];
+    // タブUIとリストコンテナを構築
+    rankingContainer.innerHTML = `
+        <div style="margin-bottom: 10px;">
+            <button id="ranking-back-btn" class="ranking-back-btn">
+                <i class="fas fa-arrow-left"></i> リストに戻る
+            </button>
+        </div>
+        <div class="ranking-tabs">
+            <button id="tab-friend" class="ranking-tab ${currentRankingMode === 'friend' ? 'active' : ''}">フレンド</button>
+            <button id="tab-global" class="ranking-tab ${currentRankingMode === 'global' ? 'active' : ''}">全国TOP50</button>
+        </div>
+        <ul id="ranking-list">
+            <li class="loading" style="text-align:center; padding:20px; color:#666;">
+                <i class="fas fa-spinner fa-spin"></i> 読み込み中...
+            </li>
+        </ul>
+    `;
+
+    // イベントリスナー設定
+    document.getElementById('ranking-back-btn').addEventListener('click', showList);
+    document.getElementById('tab-friend').addEventListener('click', () => switchRankingMode('friend'));
+    document.getElementById('tab-global').addEventListener('click', () => switchRankingMode('global'));
+
+    await renderRankingList(currentRankingMode);
+}
+
+// ランキングモード切り替え
+async function switchRankingMode(mode) {
+    if (currentRankingMode === mode) return;
+    currentRankingMode = mode;
+
+    // タブの見た目更新
+    document.querySelectorAll('.ranking-tab').forEach(tab => tab.classList.remove('active'));
+    document.getElementById(mode === 'friend' ? 'tab-friend' : 'tab-global').classList.add('active');
+
+    await renderRankingList(mode);
+}
+
+// ランキングリスト描画
+async function renderRankingList(mode) {
+    const ul = document.getElementById('ranking-list');
+    if (!ul) return;
+    
+    ul.innerHTML = '<li class="loading" style="text-align:center; padding:20px; color:#666;"><i class="fas fa-spinner fa-spin"></i> 読み込み中...</li>';
+
+    let sortedUsers = [];
     const currentUser = auth.currentUser;
 
-    if (currentUser) {
-        try {
-            const userDocRef = doc(db, "users", currentUser.uid);
-            const userSnap = await getDoc(userDocRef);
-            if (userSnap.exists()) {
-                const myData = { uid: currentUser.uid, ...userSnap.data() };
-                // 重複チェック（念のため）
-                if (!allUsers.some(u => u.uid === currentUser.uid)) {
-                    allUsers.push(myData);
+    try {
+        if (mode === 'friend') {
+            // --- フレンドランキング ---
+            let allUsers = [...currentFriendsList];
+            
+            if (currentUser) {
+                try {
+                    // 自分自身の最新データを取得
+                    const userDocRef = doc(db, "users", currentUser.uid);
+                    const userSnap = await getDoc(userDocRef);
+                    if (userSnap.exists()) {
+                        const myData = { uid: currentUser.uid, ...userSnap.data() };
+                        // 重複チェック
+                        if (!allUsers.some(u => u.uid === currentUser.uid)) {
+                            allUsers.push(myData);
+                        }
+                    }
+                } catch (e) {
+                    console.error("自分のランキング用データ取得失敗", e);
                 }
             }
-        } catch (e) {
-            console.error("自分のランキング用データ取得失敗", e);
+
+            sortedUsers = allUsers
+                .filter(user => {
+                    // 自分自身は無条件で表示、他人は非公開設定なら除外
+                    if (currentUser && user.uid === currentUser.uid) return true;
+                    return user.isProfilePublic !== false;
+                })
+                .sort((a, b) => {
+                    const countA = (a.stats && a.stats.total !== undefined) ? a.stats.total : 0;
+                    const countB = (b.stats && b.stats.total !== undefined) ? b.stats.total : 0;
+                    return countB - countA;
+                });
+
+        } else {
+            // --- 全体ランキング (TOP 50) ---
+            const usersRef = collection(db, "users");
+            // stats.total の降順で上位50件を取得
+            const q = query(usersRef, orderBy("stats.total", "desc"), limit(50));
+            const snapshot = await getDocs(q);
+            
+            const tempUsers = [];
+            snapshot.forEach(doc => {
+                const d = doc.data();
+                // 非公開ユーザーを除外 (自分自身は表示)
+                const isMe = (currentUser && doc.id === currentUser.uid);
+                if (d.isProfilePublic !== false || isMe) {
+                    tempUsers.push({ uid: doc.id, ...d });
+                }
+            });
+            
+            sortedUsers = tempUsers;
         }
-    }
 
-    const sorted = allUsers
-        .filter(user => {
-            // 自分自身は無条件で表示、他人は非公開設定なら除外
-            if (currentUser && user.uid === currentUser.uid) return true;
-            return user.isProfilePublic !== false;
-        })
-        .sort((a, b) => {
-        const countA = (a.stats && a.stats.total !== undefined) ? a.stats.total : 0;
-        const countB = (b.stats && b.stats.total !== undefined) ? b.stats.total : 0;
-        return countB - countA;
-    });
+        // --- 描画 ---
+        ul.innerHTML = "";
+        if (sortedUsers.length === 0) {
+            ul.innerHTML = '<li class="message" style="text-align:center; padding:20px;">データがありません</li>';
+            return;
+        }
 
-    if(rankingListUL) {
-        rankingListUL.innerHTML = "";
-        sorted.forEach((friend, index) => {
+        sortedUsers.forEach((user, index) => {
             const rank = index + 1;
             const li = document.createElement("li");
             if (rank <= 3) li.classList.add(`rank-${rank}`); 
 
-            // ★追加: 自分自身の場合のスタイル (少しだけ目立たせる)
-            const isMe = (currentUser && friend.uid === currentUser.uid);
+            const isMe = (currentUser && user.uid === currentUser.uid);
             if (isMe) {
                 li.style.backgroundColor = "#f9f9f9"; // ほんのりグレー
                 li.style.border = "1px solid #ddd";
@@ -667,31 +799,37 @@ async function showRanking() {
             else if (rank === 2) iconHtml = '<i class="fa-solid fa-crown" style="color:silver;"></i> ';
             else if (rank === 3) iconHtml = '<i class="fa-solid fa-crown" style="color:#cd7f32;"></i> ';
             
-            const stampCount = (friend.stats && friend.stats.total !== undefined) ? friend.stats.total : 0;
-            const iconSrc = friend.icon || friend.avatarUrl || "https://placehold.co/100x100?text=User";
-            const bioText = friend.bio || "自己紹介なし";
-            const displayName = friend.displayName + (isMe ? " (あなた)" : "");
+            const stampCount = (user.stats && user.stats.total !== undefined) ? user.stats.total : 0;
+            const iconSrc = user.icon || user.avatarUrl || "https://placehold.co/100x100?text=User";
+            const bioText = user.bio || "自己紹介なし";
+            const displayName = (user.displayName || "名無し") + (isMe ? " (あなた)" : "");
 
             li.innerHTML = `
                 <div style="display:flex; align-items:center; flex:1; overflow:hidden;">
-                    <div class="rank-number" style="min-width:40px; text-align:center;">${iconHtml}${rank}</div>
+                    <div class="rank-number" style="min-width:40px; text-align:center; font-weight:bold; font-size:1.1em;">${iconHtml}${rank}</div>
                     <img src="${iconSrc}" style="width:40px; height:40px; border-radius:50%; margin:0 10px; object-fit:cover;">
                     <div class="user-details-container">
                         <div class="user-top-row">
                             <strong class="user-name">${displayName}</strong>
-                            <span class="user-uid">ID: ${friend.uid.substring(0,8)}...</span>
+                            <span class="user-uid">ID: ${user.uid.substring(0,8)}...</span>
                         </div>
                         <div class="user-bottom-row">
-                            <span class="user-bio">${bioText}</span>
+                            <span class="user-bio" style="font-size:0.8em; color:#666;">${bioText}</span>
                         </div>
                     </div>
                 </div>
                 <span class="rank-count" style="margin-left:10px; font-weight:bold; color:#8b7e74; white-space:nowrap;">${stampCount} 枚</span>
             `;
             li.style.cursor = "pointer";
-            li.addEventListener("click", () => showProfile(friend.uid));
-            rankingListUL.appendChild(li);
+            li.style.padding = "10px";
+            li.style.borderBottom = "1px solid #f0f0f0";
+            li.addEventListener("click", () => showProfile(user.uid));
+            ul.appendChild(li);
         });
+
+    } catch (err) {
+        console.error("ランキング表示エラー:", err);
+        ul.innerHTML = '<li class="message" style="text-align:center; padding:20px; color:red;">ランキングの読み込みに失敗しました</li>';
     }
 }
 
