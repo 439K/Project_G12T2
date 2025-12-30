@@ -1,6 +1,6 @@
 /* --- アカウント関連ページ共通スタイル --- */
 :root {
-    --primary-color: #a0522d; /* 茶色 */
+    --primary-color: #e0ac28; /* 茶色 */
     --background-color: #f5f5dc; /* ベージュ */
     --text-color: #333;
     --semi-transparent-bg: rgba(255, 255, 255, 0.85); /* 半透明の白 */
@@ -85,7 +85,7 @@ input[type="password"] {
 }
 
 .btn:hover {
-    background-color: #8b4513; /* 濃い茶色 */
+    background-color: #f2d21e; /* 濃い茶色 */
 }
 
 a.switch-form {
