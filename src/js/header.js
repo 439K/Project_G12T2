@@ -276,4 +276,117 @@ document.addEventListener('DOMContentLoaded', function() {
             return null;
         }
     }
+
+    setupPullToRefresh();
+
+    function setupPullToRefresh() {
+        const content = document.querySelector('.main-content');
+        if (!content) return; // 対象要素がない場合は何もしない
+
+        let startY = 0;
+        let isPulling = false;
+        const threshold = 150; // リロードを作動させるために必要な引っ張り距離
+
+        // インジケーター（画面上部に出るメッセージ）を作成
+        const indicator = document.createElement('div');
+        indicator.style.cssText = `
+            position: fixed;
+            top: -60px;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: transparent;
+            color: #a0522d;
+            font-weight: bold;
+            z-index: 9999;
+            transition: top 0.2s ease-out;
+            pointer-events: none; /* マウス操作の邪魔にならないように */
+        `;
+        indicator.innerHTML = '<i class="fas fa-arrow-down"></i> 下に引っ張って更新';
+        document.body.appendChild(indicator);
+
+        // 共通処理: 開始
+        const onStart = (y) => {
+            // スクロール位置が最上部のときだけ開始
+            if (content.scrollTop <= 0) {
+                startY = y;
+                isPulling = true;
+            } else {
+                isPulling = false;
+            }
+        };
+        // 共通処理: 移動
+        const onMove = (y) => {
+            if (!isPulling) return;
+            
+            const distance = y - startY;
+
+            // 下に引っ張っていて、かつスクロール位置が最上部
+            if (distance > 0 && content.scrollTop <= 0) {
+                // 距離に応じてインジケーターを表示（抵抗感を出すため距離を割る）
+                const moveY = Math.min(distance / 2.5, 80); 
+                
+                if (distance > threshold) {
+                    indicator.innerHTML = '<i class="fas fa-check"></i> 指を離して更新';
+                    indicator.style.top = '0px'; // 完全に表示
+                } else {
+                    indicator.innerHTML = '<i class="fas fa-arrow-down"></i> 下に引っ張って更新';
+                    indicator.style.top = (moveY - 60) + 'px'; // 少し顔を出す
+                }
+            }
+        };
+
+        // 共通処理: 終了
+        const onEnd = (y) => {
+            if (!isPulling) return;
+            
+            const distance = y - startY;
+
+            if (distance > threshold && content.scrollTop <= 0) {
+                // リロード実行
+                indicator.style.top = '0px';
+                indicator.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 更新中...';
+                setTimeout(() => {
+                    location.reload();
+                }, 500);
+            } else {
+                // キャンセルして隠す
+                indicator.style.top = '-60px';
+            }
+            isPulling = false;
+        };
+
+        // --- タッチイベント (モバイル) ---
+        content.addEventListener('touchstart', (e) => onStart(e.touches[0].clientY), { passive: true });
+        content.addEventListener('touchmove', (e) => onMove(e.touches[0].clientY), { passive: true });
+        content.addEventListener('touchend', (e) => onEnd(e.changedTouches[0].clientY));
+
+        // --- マウスイベント (PC) ---
+        content.addEventListener('mousedown', (e) => onStart(e.clientY));
+        
+        content.addEventListener('mousemove', (e) => {
+            // 左クリックが押されているか確認 (buttons: 1)
+            if (e.buttons !== 1) {
+                if (isPulling) {
+                    isPulling = false;
+                    indicator.style.top = '-60px';
+                }
+                return;
+            }
+            onMove(e.clientY);
+        });
+
+        content.addEventListener('mouseup', (e) => onEnd(e.clientY));
+        
+        // マウスが領域外に出た場合のキャンセル処理
+        content.addEventListener('mouseleave', () => {
+            if (isPulling) {
+                isPulling = false;
+                indicator.style.top = '-60px';
+            }
+        });
+    }  
 });
