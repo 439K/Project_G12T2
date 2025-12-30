@@ -72,7 +72,7 @@ body {
     
     display: flex;
     justify-content: center;
-    align-items: center;
+    /* align-items: center; */ /* コンテンツが縦に長い場合に上部が見切れるのを防ぐため削除 */
     padding: 30px;
     background-color: transparent; 
     -webkit-overflow-scrolling: touch;

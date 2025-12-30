@@ -5,6 +5,10 @@ const gunmaConfig = {
         scale: 40000,
         center: [139.03, 36.52]
     },
+    stampSizeConfig: {
+        base: 50,      // レベル1の時の基本サイズ
+        increment: 20  // レベルが1上がるごとの増加量
+    },
     municipalityPathMap: {
         "前橋市": "maebashi-shi", "高崎市": "takasaki-shi", "桐生市": "kiryu-shi", "伊勢崎市": "isesaki-shi",
         "太田市": "ota-shi", "沼田市": "numata-shi", "館林市": "tatebayashi-shi", "渋川市": "shibukawa-shi",

@@ -5,6 +5,10 @@ const tokyoConfig = {
         scale: 52000,
         center: [139.43, 35.68]
     },
+    stampSizeConfig: {
+        base: 30,      // レベル1の時の基本サイズ
+        increment: 20  // レベルが1上がるごとの増加量
+    },
     municipalityPathMap: {
         "千代田区": "chiyoda-ku",
         "中央区": "chuo-ku",

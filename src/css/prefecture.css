@@ -77,7 +77,7 @@ svg {
     display: flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 70px; /* フッターとの少しの隙間 */
+    margin-bottom: 10px; /* フッターとの少しの隙間 */
 }
 
 .action-btn:hover {

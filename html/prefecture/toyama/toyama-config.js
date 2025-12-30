@@ -8,6 +8,10 @@ const toyamaConfig = {
         scale: 48000,           // 富山県が画面に収まるよう調整
         center: [137.26, 36.62] // 県庁所在地（富山市）付近を中心に設定
     },
+    stampSizeConfig: {
+        base: 60,      // レベル1の時の基本サイズ
+        increment: 20  // レベルが1上がるごとの増加量
+    },
     // 市区町村名取得ロジック（将来的な拡張性のため保持）
     getTargetName: function(feature) {
         return feature.properties.N03_004 || "";

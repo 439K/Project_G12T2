@@ -11,6 +11,10 @@ const chibaConfig = {
         const ward = feature.properties.N03_005 || "";
         return ward ? (city + ward) : city;
     },
+    stampSizeConfig: {
+        base: 30,      // レベル1の時の基本サイズ
+        increment: 20  // レベルが1上がるごとの増加量
+    },
     municipalityPathMap: {
         // 千葉市 (6区)
         "千葉市中央区": "chiba-chuo", "千葉市花見川区": "chiba-hanamigawa", "千葉市稲毛区": "chiba-inage",
