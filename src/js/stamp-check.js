@@ -19,22 +19,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 2. 座標から住所（特に都道府県）を取得
                 const address = await reverseGeocode(latitude, longitude);
 
+                // 3. 取得した住所情報をコンソールに出力してデバッグ
+                console.log('Reverse geocoded address:', address);
+
                 if (address && address.prefecture) {
                     const prefectureName = address.prefecture;
+                    console.log(`Found prefecture name: "${prefectureName}"`);
                     
-                    // 3. 取得した都道府県名がprefecturePathsに存在するかチェック
-                    // prefecturePathsはprefecture-data.jsで定義されているグローバル変数
+                    // 4. 取得した都道府県名がprefecturePathsに存在するかチェック
                     if (prefecturePaths[prefectureName]) {
                         const destinationUrl = prefecturePaths[prefectureName];
-                        console.log(`Prefecture found: ${prefectureName}. Redirecting to ${destinationUrl}`);
+                        console.log(`Match found in prefecturePaths. Redirecting to ${destinationUrl}`);
                         window.location.href = `${destinationUrl}?autocheck=true`;
                         return; // 処理終了
+                    } else {
+                        // 都道府県名は取得できたが、prefecturePathsのキーと一致しない場合
+                        console.warn(`Prefecture "${prefectureName}" was found, but does not exist as a key in prefecturePaths.`);
+                        alert(`現在地の都道府県「${prefectureName}」はシステムに登録されていません。`);
                     }
+                } else {
+                    // 5. 住所情報が取れなかったか、都道府県名が含まれていなかった場合
+                    console.log('Could not determine prefecture from address object.');
+                    alert('日本のいずれかの都道府県のエリア内にいません...');
                 }
-                
-                // 4. 都道府県が見つからなかった場合
-                console.log('User is not inside a designated prefecture area or prefecture could not be determined.');
-                alert('日本のいずれかの都道府県のエリア内にいません。');
 
             } catch (error) {
                 console.error('Geolocation or reverse geocoding error:', error);
