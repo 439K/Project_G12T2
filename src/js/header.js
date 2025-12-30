@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // -------------------------------------------------
         let currentPrefecture = "";
         let currentCity = "";
-        let locationText = "現在地: 取得失敗";
+        let locationText = "現在地: 取得不可";
 
         try {
             const position = await getCurrentPosition();
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 locationText = "現在地: 住所不明";
             }
         } catch (error) {
-            locationText = "現在地: 取得不可";
+            locationText = "現在地: 取得失敗";
         }
 
         // 画面更新: 現在地
@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // 画面更新: 現在地の収集率
         if (localRateEl) {
-            const prefLabel = currentPrefecture ? currentPrefecture : "エリア";
+            const prefLabel = currentPrefecture ? currentPrefecture : "現在地";
             
             // 分母を取得 (設定値があれば使用、なければ '---')
             let totalLocal = "---";

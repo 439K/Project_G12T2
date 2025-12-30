@@ -242,7 +242,7 @@ function initializeMap(config) {
                 break; 
             }
         }
-        if (!found && statusBox) statusBox.textContent = "エリア外、または該当する場所がありません。";
+        if (!found && statusBox) statusBox.textContent = "現在の位置はエリア外です。対象の地域に移動してください。";
     }
 
     function grantStamp(name, feature) {
@@ -270,7 +270,7 @@ function initializeMap(config) {
             const secs = totalSecondsLeft % 60;
             const timeStr = mins > 0 ? `${mins}分${secs}秒` : `${secs}秒`;
 
-            if (statusBox) statusBox.textContent = `クールダウン中...あと ${timeStr}`;
+            if (statusBox) statusBox.textContent = `${name}のアップグレードまで あと ${timeStr}`;
             return;
         }
         // ------------------------------
