@@ -251,7 +251,7 @@ function renderFriendList(listData, mode = "friend") {
         
         // 公開設定チェック (undefined または true なら公開)
         const isPublic = user.isProfilePublic !== false;
-        const stampDisplay = isPublic ? `シール数: ${stampCount}` : `シール数: 非公開`;
+        const stampDisplay = isPublic ? `スタンプ数: ${stampCount}` : `スタンプ数: 非公開`;
 
         userInfoDiv.innerHTML = `
             <img src="${iconSrc}" class="user-icon" alt="icon">
@@ -520,7 +520,7 @@ async function showProfile(uid) {
                         <div class="friend-stats">
                             <div class="friend-stat-item">
                                 <div class="friend-stat-value">${stats.total || 0}</div>
-                                <div class="friend-stat-label">シール数</div>
+                                <div class="friend-stat-label">スタンプ数</div>
                             </div>
                             <div class="friend-stat-item">
                                 <div class="friend-stat-value">${stats.prefs || 0}</div>
