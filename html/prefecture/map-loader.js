@@ -138,10 +138,10 @@ function initializeMap(config) {
 
     function getCurrentLocation() {
         if (!currentUser) return statusBox && (statusBox.textContent = "ログインが必要です。");
-        if (statusBox) statusBox.textContent = "位置情報を取得中...";
+        if (statusBox) statusBox.textContent = "位置情報を取得中です...";
         navigator.geolocation.getCurrentPosition(
             (pos) => checkCurrentMunicipality(pos.coords.latitude, pos.coords.longitude),
-            () => statusBox && (statusBox.textContent = "取得失敗。"),
+            () => statusBox && (statusBox.textContent = "位置情報の取得に失敗しました。"),
             { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
         );
     }
@@ -155,7 +155,7 @@ function initializeMap(config) {
                 found = true; break; 
             }
         }
-        if (!found && statusBox) statusBox.textContent = "エリア外です。";
+        if (!found && statusBox) statusBox.textContent = "現在の位置はエリア外です。対象の地域に移動してください。";
     }
 
     // =======================================================
@@ -164,14 +164,14 @@ function initializeMap(config) {
     function grantStamp(name, feature) {
         const currentTime = Date.now();
         let progress = stampProgress[name] || { level: 0, lastCheckIn: 0 };
-        if (progress.level >= MAX_STAMPS) return statusBox && (statusBox.textContent = `${name}コンプ！`);
+        if (progress.level >= MAX_STAMPS) return statusBox && (statusBox.textContent = `${name}のスタンプはコンプリート済みです！`);
 
         let requiredCooldown = progress.level === 1 ? 60000 : (progress.level === 2 ? 600000 : 0);
         const timeElapsed = currentTime - progress.lastCheckIn;
 
         if (timeElapsed < requiredCooldown) {
             const total = Math.ceil((requiredCooldown - timeElapsed) / 1000);
-            return statusBox && (statusBox.textContent = `${name} 次まであと ${Math.floor(total/60)}分${total%60}秒`);
+            return statusBox && (statusBox.textContent = `${name} のアップグレードまであと ${Math.floor(total/60)}分${total%60}秒`);
         }
 
         progress.level += 1;
@@ -185,7 +185,7 @@ function initializeMap(config) {
             .attr("stroke-width", progress.level === MAX_STAMPS ? 3 : 2);
 
         updateStampImage(name, feature, progress.level, true);
-        if (statusBox) statusBox.textContent = `${name} Lv.${progress.level} 獲得！`;
+        if (statusBox) statusBox.textContent = `${name}のスタンプ(Lv.${progress.level})を獲得！`;
     }
 
     // =======================================================
@@ -243,7 +243,7 @@ function initializeMap(config) {
         if (!m) return;
         document.getElementById("modal-city-name").textContent = name;
         document.getElementById("modal-img").src = imgSrc;
-        document.getElementById("modal-desc").textContent = `${name}のスタンプ (Lv.${level})`;
+        document.getElementById("modal-desc").textContent = `${name}のスタンプ (レベル${level})です。現地を訪れて獲得しました！`;
         m.style.display = "flex";
     }
 
