@@ -70,7 +70,7 @@
 
 /* ボタンコンテナの背景をこのページ専用に設定 */
 .action-buttons-container {
-    margin-bottom: 70px;
+    margin-bottom: 10px;
     flex-shrink: 0; /* ボタンエリアは縮まない */
 }
 
