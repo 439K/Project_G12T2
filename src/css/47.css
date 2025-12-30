@@ -1,21 +1,22 @@
-.app-container {
-    /* 背景画像を本に固定 */
-    background-image: url('../images/openedBook.png');
-    background-size: cover;
-    background-position: center;
-    min-height: 100vh; /* 画面全体の高さを確保 */
+/* 47.html専用のmain-contentスタイル */
+.main-content {
     display: flex;
     flex-direction: column;
+    justify-content: flex-start; /* 上から詰める */
+    align-items: stretch; /* 幅をいっぱいにする */
+    flex-grow: 1;
+    overflow-y: auto; /* main-content自体をスクロールさせる */
+    padding: 0; /* style.cssのpaddingをリセット */
 }
 
 .filter {
     background-color: rgba(0,0,0,0.25);
-    height: inherit;
+    /* flex-grow: 1; */ /* 削除 */
+    /* overflow-y: auto; */ /* 削除 */
+    padding: 10px 0; /* 上下に少し余白 */
 }
 
-#container {
-    overflow-y: auto;
-}
+/* #containerは.filterと同じ要素なので、重複するスタイルは削除 */
 
 /* 各地方ブロックを整列 */
 .index-wrap {
@@ -39,6 +40,7 @@
     align-items: center;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
+    position: relative; /* lock-iconのため */
 }
 
 /* ホバー時に少し浮き上がる */
@@ -56,11 +58,6 @@
     letter-spacing: 1px;
 }
 
-/* フッターは下に固定される */
-.bottom-nav {
-    margin-top: auto; /* 自動的に一番下に寄せる */
-}
-
 .back-btn {
   margin: 20px auto;
   padding: 8px 16px;
@@ -73,7 +70,8 @@
 
 /* ボタンコンテナの背景をこのページ専用に設定 */
 .action-buttons-container {
-    background-color: rgba(0, 0, 0, 0.25); /* 背景色を他のエリアと統一 */
+    margin-bottom: 70px;
+    flex-shrink: 0; /* ボタンエリアは縮まない */
 }
 
 /* ロックされたボックス共通 */
