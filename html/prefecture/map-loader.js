@@ -2,6 +2,7 @@
  * map-loader.js
  * 各都道府県のHTMLから呼び出される共通地図読み込みライブラリ
  * モーダル表示・可変サイズ・キャッシュ・新クールダウン機能統合版
+ * 画像表示の安定化修正済み
  */
 function initializeMap(config) {
     // =======================================================
@@ -198,7 +199,7 @@ function initializeMap(config) {
     }
 
     // =======================================================
-    // 4. スタンプ付与（クールダウン新ロジック反映）
+    // 4. スタンプ付与
     // =======================================================
     function grantStamp(name, feature) {
         const currentTime = Date.now();
@@ -209,12 +210,11 @@ function initializeMap(config) {
             return;
         }
 
-        // --- クールダウン判定（1分 / 10分） ---
         let requiredCooldown = 0;
         if (progress.level === 1) {
-            requiredCooldown = 1 * 60 * 1000; // Lv1→2は1分
+            requiredCooldown = 1 * 60 * 1000; 
         } else if (progress.level === 2) {
-            requiredCooldown = 10 * 60 * 1000; // Lv2→3は10分
+            requiredCooldown = 10 * 60 * 1000; 
         }
 
         const timeElapsed = currentTime - progress.lastCheckIn;
@@ -243,14 +243,16 @@ function initializeMap(config) {
         if (statusBox) statusBox.textContent = `${name} のスタンプ (Lv.${progress.level}) を獲得！`;
     }
 
+    // =======================================================
+    // ★ 修正済み画像表示ロジック
+    // =======================================================
     async function updateStampImage(name, feature, level, useTransition) {
         const stampId = "stamp-" + name;
         let stampElement = d3.select("#" + stampId);
         const centroid = path.centroid(feature); 
-        
-        // ★修正：動的なサイズ設定を使用
         const currentSize = baseSize + (level - 1) * incSize; 
         
+        // 1. URL取得を確実に終わらせる
         let imagePath = null;
         try {
             const storageRefPath = `stamps/${prefectureId}/${name}_${level}.png`;
@@ -264,29 +266,38 @@ function initializeMap(config) {
             }
         }
 
+        // 2. 要素の作成または更新
         if (stampElement.empty()) {
+            // 新規作成
             stampElement = stampGroup.append("image")
                 .attr("id", stampId)
-                .attr("href", imagePath)
+                .attr("href", imagePath) // パスを即座にセット
                 .attr("x", centroid[0] - currentSize / 2)
                 .attr("y", centroid[1] - currentSize / 2)
                 .attr("width", currentSize)
                 .attr("height", currentSize)
-                .attr("opacity", 0)
+                .attr("opacity", 0) // 一旦透明に
                 .style("cursor", "pointer")
                 .on("click", () => showStampModal(name, imagePath, level));
-            const target = useTransition ? stampElement.transition().duration(500) : stampElement;
-            target.attr("opacity", 1);
+
+            // URLがセットされた後に不透明度を1にする（アニメーションあり/なし）
+            if (useTransition) {
+                stampElement.transition().duration(500).attr("opacity", 1);
+            } else {
+                stampElement.attr("opacity", 1);
+            }
         } else {
-            const el = useTransition ? stampElement.transition().duration(300) : stampElement;
-            el.attr("href", imagePath)
+            // 既存更新
+            const target = useTransition ? stampElement.transition().duration(300) : stampElement;
+            target.attr("href", imagePath)
                 .attr("x", centroid[0] - currentSize / 2)
                 .attr("y", centroid[1] - currentSize / 2)
                 .attr("width", currentSize)
                 .attr("height", currentSize)
-                .on("end", function() {
-                    d3.select(this).on("click", () => showStampModal(name, imagePath, level));
-                });
+                .attr("opacity", 1); // 確実に表示状態にする
+
+            // クリックイベントの再設定（URLが更新されるため）
+            stampElement.on("click", () => showStampModal(name, imagePath, level));
         }
     }
 
